@@ -36,7 +36,40 @@
         }
       ],
       "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Kinetik usa Face ID para proteger tu información financiera."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#208AEF"
+        }
+      ],
+      "expo-quick-actions",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "QuickAdd",
+              "label": "Kinetik",
+              "description": "Agrega gastos e ingresos rápido",
+              "minWidth": "250dp",
+              "minHeight": "40dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "maxResizeHeight": "180dp",
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widgets/quick-add-preview.png",
+              "updatePeriodMillis": 21600000
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
