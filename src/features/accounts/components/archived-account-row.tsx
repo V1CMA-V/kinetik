@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatShortDate, toISODate } from '@/lib/date';
 
@@ -26,24 +27,19 @@ export function ArchivedAccountRow({ account, onPress }: Props) {
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      className="flex-row items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 active:opacity-80 dark:border-neutral-800 dark:bg-neutral-900"
+      className="flex-row items-center gap-3 rounded-card border border-line bg-card p-4 active:opacity-80"
     >
       <View className="flex-1 gap-0.5">
-        <Text
-          numberOfLines={1}
-          className="text-base font-semibold text-neutral-900 dark:text-white"
-        >
+        <Text numberOfLines={1} className="text-base font-semibold text-ink">
           {account.name}
         </Text>
-        <Text numberOfLines={1} className="text-xs text-neutral-500">
+        <Text numberOfLines={1} className="text-xs text-ink-muted">
           {subtitle}
         </Text>
-        <Text className="text-xs text-neutral-500">Archivada el {archivedOn}</Text>
+        <Text className="text-xs text-ink-muted">Archivada el {archivedOn}</Text>
       </View>
       <Text
-        className={`text-base font-semibold ${
-          isCredit && debt > 0 ? 'text-red-500' : 'text-neutral-900 dark:text-white'
-        }`}
+        className={`text-base font-semibold ${isCredit && debt > 0 ? 'text-expense' : 'text-ink'}`}
       >
         {isCredit
           ? `Deuda ${formatMoney(debt, account.currency)}`

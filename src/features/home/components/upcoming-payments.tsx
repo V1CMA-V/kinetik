@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import type { CardPayment } from '@/features/accounts/statements';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatDay } from '@/lib/date';
@@ -24,9 +25,9 @@ function dueLabel(days: number) {
 }
 
 function dueColor(days: number) {
-  if (days <= 0) return 'text-red-600 dark:text-red-400';
-  if (days <= SOON_DAYS) return 'text-amber-600 dark:text-amber-400';
-  return 'text-neutral-500';
+  if (days <= 0) return 'text-expense';
+  if (days <= SOON_DAYS) return 'text-warning';
+  return 'text-ink-muted';
 }
 
 export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
@@ -50,10 +51,7 @@ export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
             >
               <HomeCard className="flex-row items-center gap-3">
                 <View className="flex-1 gap-0.5">
-                  <Text
-                    numberOfLines={1}
-                    className="text-base font-semibold text-neutral-900 dark:text-white"
-                  >
+                  <Text numberOfLines={1} className="text-base font-semibold text-ink">
                     {[p.institution, p.name].filter(Boolean).join(' · ')}
                   </Text>
                   <Text className={`text-xs font-medium ${dueColor(p.daysUntilDue)}`}>
@@ -61,7 +59,7 @@ export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
                     {Math.abs(p.daysUntilDue) > 1 ? ` · ${formatDay(p.dueDate)}` : ''}
                   </Text>
                 </View>
-                <Text className="text-base font-bold text-neutral-900 dark:text-white">
+                <Text className="text-base font-bold text-ink">
                   {formatAmount(p.amount, p.currency)}
                 </Text>
               </HomeCard>
@@ -70,16 +68,14 @@ export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
         </View>
       ) : (
         <HomeCard>
-          <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-            Estás al corriente ✅
-          </Text>
-          <Text className="mt-0.5 text-xs text-neutral-500">
+          <Text className="text-base font-semibold text-ink">Estás al corriente</Text>
+          <Text className="mt-0.5 text-xs text-ink-muted">
             No tienes pagos pendientes de tus estados de cuenta.
           </Text>
         </HomeCard>
       )}
       {unconfiguredCards > 0 ? (
-        <Text className="text-xs text-neutral-500">
+        <Text className="text-xs text-ink-muted">
           {unconfiguredCards === 1
             ? '1 tarjeta no tiene día de corte y de pago configurados.'
             : `${unconfiguredCards} tarjetas no tienen día de corte y de pago configurados.`}

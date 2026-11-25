@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert, Text } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +30,7 @@ export default function EditTransactionScreen() {
   if (!transaction.data) {
     return (
       <Screen className="justify-center gap-4">
-        <Text className="text-center text-base text-neutral-500">
+        <Text className="text-center text-base text-ink-muted">
           {transaction.error?.message ?? 'No encontramos este movimiento.'}
         </Text>
         <Button title="Volver" variant="secondary" onPress={() => router.back()} />
@@ -62,7 +63,7 @@ export default function EditTransactionScreen() {
       error={updateTransaction.error?.message ?? remove.error?.message}
     >
       {current.subscription_id ? (
-        <Text className="text-center text-xs text-neutral-500">
+        <Text className="text-center text-xs text-ink-muted">
           Cargo automático de una suscripción. Los cambios solo aplican a este cargo.
         </Text>
       ) : null}

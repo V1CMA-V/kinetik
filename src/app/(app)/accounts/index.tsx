@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Alert, Pressable, SectionList, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, SectionList, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { type Account, useAccounts, useArchiveAccount } from '@/features/accounts/api';
@@ -45,7 +46,7 @@ export default function AccountsScreen() {
         ListHeaderComponent={
           <View className="mb-2 gap-6">
             <View className="flex-row items-center justify-between">
-              <Text className="text-3xl font-bold text-neutral-900 dark:text-white">Cuentas</Text>
+              <Text className="font-display text-3xl font-bold text-ink">Cuentas</Text>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={hideAmounts ? 'Mostrar montos' : 'Ocultar montos'}
@@ -56,24 +57,22 @@ export default function AccountsScreen() {
                 <Text className="text-xl">{hideAmounts ? '🙈' : '👁'}</Text>
               </Pressable>
             </View>
-            <View className="gap-1 rounded-2xl bg-brand-500 p-5">
-              <Text className="text-sm text-brand-50">Saldo total</Text>
-              <Text className="text-3xl font-bold text-white">
+            <View className="gap-1 rounded-card bg-accent p-5">
+              <Text className="text-sm text-on-accent-muted">Saldo total</Text>
+              <Text className="font-display text-3xl font-bold text-on-accent">
                 {formatAmount(total, DEFAULT_CURRENCY)}
               </Text>
-              <Text className="text-xs text-brand-100">Las deudas de tarjetas se restan</Text>
+              <Text className="text-xs text-on-accent-muted">Las deudas de tarjetas se restan</Text>
             </View>
             <Button title="Agregar cuenta" onPress={() => router.push('/accounts/new')} />
           </View>
         }
         renderSectionHeader={({ section }) => (
           <View className="mb-2 mt-5 flex-row items-baseline justify-between">
-            <Text className="text-lg font-bold text-neutral-900 dark:text-white">
-              {section.title}
-            </Text>
+            <Text className="text-lg font-bold text-ink">{section.title}</Text>
             <Text
               className={`text-sm font-semibold ${
-                section.total < 0 ? 'text-red-500' : 'text-neutral-500'
+                section.total < 0 ? 'text-expense' : 'text-ink-muted'
               }`}
             >
               {formatAmount(section.total, DEFAULT_CURRENCY)}
@@ -94,16 +93,16 @@ export default function AccountsScreen() {
           accounts.isPending ? (
             <ActivityIndicator className="mt-8" />
           ) : accounts.isError ? (
-            <Text className="mt-8 text-center text-red-500">{accounts.error.message}</Text>
+            <Text className="mt-8 text-center text-expense">{accounts.error.message}</Text>
           ) : (
-            <Text className="mt-8 text-center text-neutral-500">
+            <Text className="mt-8 text-center text-ink-muted">
               Aún no tienes cuentas. Agrega tu cuenta de nómina, tarjeta de crédito o efectivo.
             </Text>
           )
         }
         ListFooterComponent={
           accounts.data?.length ? (
-            <Text className="mt-2 text-center text-xs text-neutral-500">
+            <Text className="mt-2 text-center text-xs text-ink-muted">
               Toca una cuenta para editarla · mantén presionada para archivarla
             </Text>
           ) : undefined

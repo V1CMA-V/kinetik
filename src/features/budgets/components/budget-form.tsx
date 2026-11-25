@@ -2,8 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ export function BudgetForm(props: Props) {
   if (!categories.length && !props.isSubmitting) {
     return (
       <Screen className="justify-center gap-4">
-        <Text className="text-center text-base text-neutral-500">
+        <Text className="text-center text-base text-ink-muted">
           Ya tienes presupuesto en todas las categorías. Toca uno para cambiar su monto.
         </Text>
         <Button title="Volver" variant="secondary" onPress={() => router.back()} />
@@ -84,16 +85,14 @@ function BudgetFields({
   return (
     <Screen>
       <FormScrollView>
-        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">{title}</Text>
+        <Text className="font-display text-3xl font-bold text-ink">{title}</Text>
 
         <Controller
           control={control}
           name="category"
           render={({ field: { value, onChange } }) => (
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Categoría
-              </Text>
+              <Text className="text-sm font-medium text-ink-muted">Categoría</Text>
               <View className="flex-row flex-wrap gap-2">
                 {categories.map((c) => (
                   <Chip
@@ -106,9 +105,9 @@ function BudgetFields({
                 ))}
               </View>
               {formState.errors.category ? (
-                <Text className="text-sm text-red-500">{formState.errors.category.message}</Text>
+                <Text className="text-sm text-expense">{formState.errors.category.message}</Text>
               ) : isEdit ? (
-                <Text className="text-xs text-neutral-500">
+                <Text className="text-xs text-ink-muted">
                   La categoría no se puede cambiar; elimina este presupuesto y crea otro.
                 </Text>
               ) : null}
@@ -130,14 +129,14 @@ function BudgetFields({
                 onBlur={onBlur}
                 error={formState.errors.amount?.message}
               />
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-ink-muted">
                 Se aplica igual cada mes. Las compras a MSI cuentan por mensualidad.
               </Text>
             </View>
           )}
         />
 
-        {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
+        {error ? <Text className="text-sm text-expense">{error}</Text> : null}
 
         <View className="gap-3">
           <Button title={submitLabel} loading={isSubmitting} onPress={() => submit()} />

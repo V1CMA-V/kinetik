@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert, Text } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +30,7 @@ export default function EditSubscriptionScreen() {
   if (!subscription.data) {
     return (
       <Screen className="justify-center gap-4">
-        <Text className="text-center text-base text-neutral-500">
+        <Text className="text-center text-base text-ink-muted">
           {subscription.error?.message ?? 'No encontramos esta suscripción.'}
         </Text>
         <Button title="Volver" variant="secondary" onPress={() => router.back()} />

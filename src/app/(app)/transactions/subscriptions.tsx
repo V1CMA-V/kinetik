@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Alert, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -70,21 +71,21 @@ export default function SubscriptionsScreen() {
         ListHeaderComponent={
           <View className="mb-3 gap-5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-3xl font-bold text-neutral-900 dark:text-white">
-                Suscripciones
-              </Text>
+              <Text className="font-display text-3xl font-bold text-ink">Suscripciones</Text>
               <Text
-                className="text-base font-semibold text-brand-500"
+                className="text-base font-semibold text-accent-ink"
                 onPress={() => router.back()}
               >
                 Listo
               </Text>
             </View>
 
-            <View className="gap-1 rounded-2xl bg-brand-500 p-5">
-              <Text className="text-sm text-brand-50">Pagas al mes</Text>
-              <Text className="text-3xl font-bold text-white">{formatAmount(monthly)}</Text>
-              <Text className="text-xs text-brand-100">
+            <View className="gap-1 rounded-card bg-accent p-5">
+              <Text className="text-sm text-on-accent-muted">Pagas al mes</Text>
+              <Text className="font-display text-3xl font-bold text-on-accent">
+                {formatAmount(monthly)}
+              </Text>
+              <Text className="text-xs text-on-accent-muted">
                 {formatAmount(monthly * 12)} al año · trimestrales y anuales prorrateadas
               </Text>
             </View>
@@ -111,9 +112,9 @@ export default function SubscriptionsScreen() {
           subscriptions.isPending ? (
             <ActivityIndicator className="mt-8" />
           ) : subscriptions.isError ? (
-            <Text className="mt-8 text-center text-red-500">{subscriptions.error.message}</Text>
+            <Text className="mt-8 text-center text-expense">{subscriptions.error.message}</Text>
           ) : (
-            <Text className="mt-8 text-center text-neutral-500">
+            <Text className="mt-8 text-center text-ink-muted">
               Agrega Spotify, Netflix, Prime… y sus cargos se registrarán solos cada mes, trimestre
               o año.
             </Text>
@@ -121,7 +122,7 @@ export default function SubscriptionsScreen() {
         }
         ListFooterComponent={
           subscriptions.data?.length ? (
-            <Text className="mt-3 text-center text-xs text-neutral-500">
+            <Text className="mt-3 text-center text-xs text-ink-muted">
               Toca para editar · mantén presionada para pausar o eliminar
             </Text>
           ) : undefined

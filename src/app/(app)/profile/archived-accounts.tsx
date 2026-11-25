@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { ActivityIndicator, Alert, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import {
   type Account,
@@ -53,10 +54,8 @@ export default function ArchivedAccountsScreen() {
         onRefresh={() => archived.refetch()}
         ListHeaderComponent={
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-3xl font-bold text-neutral-900 dark:text-white">
-              Cuentas archivadas
-            </Text>
-            <Text className="text-base font-semibold text-brand-500" onPress={() => router.back()}>
+            <Text className="font-display text-3xl font-bold text-ink">Cuentas archivadas</Text>
+            <Text className="text-base font-semibold text-accent-ink" onPress={() => router.back()}>
               Listo
             </Text>
           </View>
@@ -68,16 +67,16 @@ export default function ArchivedAccountsScreen() {
           archived.isPending ? (
             <ActivityIndicator className="mt-8" />
           ) : archived.isError ? (
-            <Text className="mt-8 text-center text-red-500">{archived.error.message}</Text>
+            <Text className="mt-8 text-center text-expense">{archived.error.message}</Text>
           ) : (
-            <Text className="mt-8 text-center text-neutral-500">
+            <Text className="mt-8 text-center text-ink-muted">
               No tienes cuentas archivadas. Al archivar una cuenta desde Cuentas aparecerá aquí.
             </Text>
           )
         }
         ListFooterComponent={
           archived.data?.length ? (
-            <Text className="mt-3 text-center text-xs text-neutral-500">
+            <Text className="mt-3 text-center text-xs text-ink-muted">
               Toca una cuenta para restaurarla o eliminarla
             </Text>
           ) : undefined

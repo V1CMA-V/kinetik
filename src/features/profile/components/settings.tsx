@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
-import { Pressable, Switch, Text, View } from 'react-native';
+import { Pressable, Switch, View } from 'react-native';
+
+import { Text } from '@/components/ui/text';
+import { useThemeColors } from '@/theme/colors';
 
 /** Titled group of settings rows (iOS-style inset card). */
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <View className="gap-2">
-      <Text className="px-1 text-sm font-medium text-neutral-500">{title}</Text>
-      <View className="overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-        {children}
-      </View>
+      <Text className="px-1 text-sm font-medium text-ink-muted">{title}</Text>
+      <View className="overflow-hidden rounded-card border border-line bg-card">{children}</View>
     </View>
   );
 }
@@ -39,28 +40,22 @@ export function SettingsRow({
   const content = (
     <View
       className={`min-h-14 flex-row items-center gap-3 px-4 py-3 ${
-        last ? '' : 'border-b border-neutral-200 dark:border-neutral-800'
+        last ? '' : 'border-b border-line'
       }`}
     >
       <View className="flex-1 gap-0.5">
-        <Text
-          className={`text-base ${
-            destructive ? 'text-red-500' : 'text-neutral-900 dark:text-white'
-          }`}
-        >
-          {label}
-        </Text>
-        {description ? <Text className="text-xs text-neutral-500">{description}</Text> : null}
+        <Text className={`text-base ${destructive ? 'text-expense' : 'text-ink'}`}>{label}</Text>
+        {description ? <Text className="text-xs text-ink-muted">{description}</Text> : null}
       </View>
       {right ??
         (value || onPress ? (
           <View className="flex-row items-center gap-1">
             {value ? (
-              <Text numberOfLines={1} className="max-w-48 text-sm text-neutral-500">
+              <Text numberOfLines={1} className="max-w-48 text-sm text-ink-muted">
                 {value}
               </Text>
             ) : null}
-            {onPress ? <Text className="text-xl text-neutral-400">›</Text> : null}
+            {onPress ? <Text className="text-xl text-ink-muted">›</Text> : null}
           </View>
         ) : null)}
     </View>
@@ -84,6 +79,7 @@ type SwitchRowProps = {
 };
 
 export function SwitchRow({ value, onValueChange, disabled, ...props }: SwitchRowProps) {
+  const colors = useThemeColors();
   return (
     <SettingsRow
       {...props}
@@ -92,7 +88,8 @@ export function SwitchRow({ value, onValueChange, disabled, ...props }: SwitchRo
           value={value}
           onValueChange={onValueChange}
           disabled={disabled}
-          trackColor={{ true: '#208AEF' }}
+          trackColor={{ false: colors.outline, true: colors.accent }}
+          thumbColor={colors.card}
         />
       }
     />

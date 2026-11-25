@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { useBudgetProgress, useDeleteBudget } from '@/features/budgets/api';
@@ -10,9 +11,9 @@ import { useFormatMoney } from '@/hooks/use-format-money';
 import { addMonths, formatMonth, monthRange, today } from '@/lib/date';
 
 const BAR_CLASSES: Record<BudgetStatus, string> = {
-  ok: 'bg-green-500',
-  warning: 'bg-amber-500',
-  over: 'bg-red-500',
+  ok: 'bg-income',
+  warning: 'bg-warning',
+  over: 'bg-expense',
 };
 
 export default function BudgetsScreen() {
@@ -44,11 +45,9 @@ export default function BudgetsScreen() {
         ListHeaderComponent={
           <View className="mb-3 gap-5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-3xl font-bold text-neutral-900 dark:text-white">
-                Presupuestos
-              </Text>
+              <Text className="font-display text-3xl font-bold text-ink">Presupuestos</Text>
               <Text
-                className="text-base font-semibold text-brand-500"
+                className="text-base font-semibold text-accent-ink"
                 onPress={() => router.back()}
               >
                 Listo
@@ -57,9 +56,7 @@ export default function BudgetsScreen() {
 
             <View className="flex-row items-center justify-between">
               <MonthButton label="‹" onPress={() => setMonth(addMonths(month, -1))} />
-              <Text className="text-lg font-semibold text-neutral-900 dark:text-white">
-                {formatMonth(month)}
-              </Text>
+              <Text className="text-lg font-semibold text-ink">{formatMonth(month)}</Text>
               <MonthButton
                 label="›"
                 disabled={isCurrentMonth}
@@ -68,12 +65,12 @@ export default function BudgetsScreen() {
             </View>
 
             {totals && totals.budget > 0 ? (
-              <View className="gap-3 rounded-2xl bg-brand-500 p-5">
+              <View className="gap-3 rounded-card bg-accent p-5">
                 <View className="gap-1">
-                  <Text className="text-sm text-brand-50">Gastado / Presupuesto</Text>
-                  <Text className="text-2xl font-bold text-white">
+                  <Text className="text-sm text-on-accent-muted">Gastado / Presupuesto</Text>
+                  <Text className="font-display text-2xl font-bold text-on-accent">
                     {formatAmount(totals.spent)}{' '}
-                    <Text className="text-base font-medium text-brand-100">
+                    <Text className="text-base font-medium text-on-accent-muted">
                       de {formatAmount(totals.budget)}
                     </Text>
                   </Text>
@@ -81,9 +78,9 @@ export default function BudgetsScreen() {
                 <ProgressBar
                   ratio={totals.ratio}
                   status={totals.status}
-                  trackClassName="bg-white/25"
+                  trackClassName="bg-on-accent/15"
                 />
-                <Text className="text-xs text-brand-100">
+                <Text className="text-xs text-on-accent-muted">
                   {totals.remaining >= 0
                     ? `Te quedan ${formatAmount(totals.remaining)} este mes`
                     : `Te pasaste por ${formatAmount(-totals.remaining)}`}
@@ -110,9 +107,9 @@ export default function BudgetsScreen() {
           progress.isPending ? (
             <ActivityIndicator className="mt-8" />
           ) : progress.error ? (
-            <Text className="mt-8 text-center text-red-500">{progress.error.message}</Text>
+            <Text className="mt-8 text-center text-expense">{progress.error.message}</Text>
           ) : (
-            <Text className="mt-8 text-center text-neutral-500">
+            <Text className="mt-8 text-center text-ink-muted">
               Ponle un límite mensual a tus categorías de gasto (Comida, Súper, Transporte…) y ve
               cuánto llevas cada mes.
             </Text>
@@ -122,12 +119,12 @@ export default function BudgetsScreen() {
           data ? (
             <View className="mt-3 gap-3">
               {data.unbudgetedSpent > 0 ? (
-                <Text className="text-center text-sm text-neutral-500">
+                <Text className="text-center text-sm text-ink-muted">
                   Sin presupuesto: {formatAmount(data.unbudgetedSpent)}
                 </Text>
               ) : null}
               {data.categories.length ? (
-                <Text className="text-center text-xs text-neutral-500">
+                <Text className="text-center text-xs text-ink-muted">
                   Toca para editar · mantén presionado para eliminar
                 </Text>
               ) : null}
@@ -154,30 +151,24 @@ function BudgetCard({
       accessibilityRole="button"
       onPress={onPress}
       onLongPress={onLongPress}
-      className="gap-3 rounded-2xl border border-neutral-200 bg-white p-4 active:opacity-80 dark:border-neutral-800 dark:bg-neutral-900"
+      className="gap-3 rounded-card border border-line bg-card p-4 active:opacity-80"
     >
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-          {p.category}
-        </Text>
-        <Text className="text-sm text-neutral-500">
-          <Text className="font-semibold text-neutral-900 dark:text-white">
-            {formatAmount(p.spent)}
-          </Text>{' '}
-          de {formatAmount(p.budget)}
+        <Text className="text-base font-semibold text-ink">{p.category}</Text>
+        <Text className="text-sm text-ink-muted">
+          <Text className="font-semibold text-ink">{formatAmount(p.spent)}</Text> de{' '}
+          {formatAmount(p.budget)}
         </Text>
       </View>
       <ProgressBar ratio={p.ratio} status={p.status} />
       <View className="flex-row items-center justify-between gap-3">
-        <Text className={`text-xs ${p.status === 'over' ? 'text-red-500' : 'text-neutral-500'}`}>
+        <Text className={`text-xs ${p.status === 'over' ? 'text-expense' : 'text-ink-muted'}`}>
           {p.remaining >= 0
             ? `Te quedan ${formatAmount(p.remaining)}`
             : `Te pasaste por ${formatAmount(-p.remaining)}`}
         </Text>
         {p.installmentsSpent > 0 ? (
-          <Text className="text-xs text-neutral-500">
-            {formatAmount(p.installmentsSpent)} en MSI
-          </Text>
+          <Text className="text-xs text-ink-muted">{formatAmount(p.installmentsSpent)} en MSI</Text>
         ) : null}
       </View>
     </Pressable>
@@ -187,7 +178,7 @@ function BudgetCard({
 function ProgressBar({
   ratio,
   status,
-  trackClassName = 'bg-neutral-200 dark:bg-neutral-800',
+  trackClassName = 'bg-sunken',
 }: {
   ratio: number;
   status: BudgetStatus;
@@ -223,9 +214,9 @@ function MonthButton({
       accessibilityLabel={label === '‹' ? 'Mes anterior' : 'Mes siguiente'}
       onPress={onPress}
       disabled={disabled}
-      className="h-10 w-10 items-center justify-center rounded-full bg-neutral-200 active:opacity-70 disabled:opacity-30 dark:bg-neutral-800"
+      className="h-10 w-10 items-center justify-center rounded-full bg-sunken active:opacity-70 disabled:opacity-30"
     >
-      <Text className="text-xl text-neutral-900 dark:text-white">{label}</Text>
+      <Text className="text-xl text-ink">{label}</Text>
     </Pressable>
   );
 }

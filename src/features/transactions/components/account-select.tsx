@@ -1,5 +1,6 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import type { Account } from '@/features/accounts/api';
 import { ACCOUNT_TYPES } from '@/features/accounts/constants';
 import { useFormatMoney } from '@/hooks/use-format-money';
@@ -19,7 +20,7 @@ export function AccountSelect({ label, accounts, value, onChange, error, exclude
 
   return (
     <View className="gap-1.5">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</Text>
+      <Text className="text-sm font-medium text-ink-muted">{label}</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -36,18 +37,14 @@ export function AccountSelect({ label, accounts, value, onChange, error, exclude
               accessibilityState={{ selected }}
               onPress={() => onChange(account.id)}
               className={`min-w-36 gap-0.5 rounded-xl border px-4 py-3 active:opacity-80 ${
-                selected
-                  ? 'border-brand-500 bg-brand-50 dark:bg-brand-700/30'
-                  : 'border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
+                selected ? 'border-accent bg-accent-soft' : 'border-outline bg-card'
               }`}
             >
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-ink-muted">
                 {account.institution ?? ACCOUNT_TYPES[account.type].label}
               </Text>
-              <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-                {account.name}
-              </Text>
-              <Text className={`text-xs ${isCredit ? 'text-red-500' : 'text-neutral-500'}`}>
+              <Text className="text-base font-semibold text-ink">{account.name}</Text>
+              <Text className={`text-xs ${isCredit ? 'text-expense' : 'text-ink-muted'}`}>
                 {isCredit
                   ? `Deuda ${formatAmount(Math.abs(Math.min(account.balance, 0)), account.currency)}`
                   : formatAmount(account.balance, account.currency)}
@@ -56,7 +53,7 @@ export function AccountSelect({ label, accounts, value, onChange, error, exclude
           );
         })}
       </ScrollView>
-      {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
+      {error ? <Text className="text-sm text-expense">{error}</Text> : null}
     </View>
   );
 }

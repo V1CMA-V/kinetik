@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatShortDate } from '@/lib/date';
 
@@ -28,17 +29,14 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      className="gap-3 rounded-2xl border border-neutral-200 bg-white p-4 active:opacity-80 dark:border-neutral-800 dark:bg-neutral-900"
+      className="gap-3 rounded-card border border-line bg-card p-4 active:opacity-80"
     >
       <View className="flex-row items-center justify-between gap-3">
-        <Text
-          numberOfLines={1}
-          className="flex-1 text-base font-semibold text-neutral-900 dark:text-white"
-        >
+        <Text numberOfLines={1} className="flex-1 text-base font-semibold text-ink">
           {account.name}
         </Text>
-        <View className="rounded-full bg-brand-50 px-2.5 py-1 dark:bg-brand-700/30">
-          <Text className="text-xs font-medium text-brand-700 dark:text-brand-100">
+        <View className="rounded-full bg-accent-soft px-2.5 py-1">
+          <Text className="text-xs font-medium text-accent-ink">
             {ACCOUNT_TYPES[account.type].label}
           </Text>
         </View>
@@ -47,15 +45,15 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
       {isCredit ? (
         <View className="flex-row justify-between">
           <View>
-            <Text className="text-xs text-neutral-500">Deuda</Text>
-            <Text className="text-xl font-bold text-red-500">
+            <Text className="text-xs text-ink-muted">Deuda</Text>
+            <Text className="font-display text-xl font-bold text-expense">
               {formatAmount(debt, account.currency)}
             </Text>
           </View>
           {available != null ? (
             <View className="items-end">
-              <Text className="text-xs text-neutral-500">Disponible</Text>
-              <Text className="text-base font-semibold text-neutral-900 dark:text-white">
+              <Text className="text-xs text-ink-muted">Disponible</Text>
+              <Text className="text-base font-semibold text-ink">
                 {formatAmount(available, account.currency)}
               </Text>
             </View>
@@ -63,8 +61,8 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
         </View>
       ) : (
         <View>
-          <Text className="text-xs text-neutral-500">Saldo</Text>
-          <Text className="text-xl font-bold text-neutral-900 dark:text-white">
+          <Text className="text-xs text-ink-muted">Saldo</Text>
+          <Text className="font-display text-xl font-bold text-ink">
             {formatAmount(account.balance, account.currency)}
           </Text>
         </View>
@@ -72,7 +70,7 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
 
       {isCredit ? (
         account.statement_day == null || account.payment_due_day == null ? (
-          <Text className="text-xs text-neutral-500">
+          <Text className="text-xs text-ink-muted">
             Configura tu fecha de corte para saber cuánto y cuándo pagar
           </Text>
         ) : statement ? (
@@ -104,27 +102,23 @@ function StatementSummary({
             currency,
           )}`;
 
-  const headlineColor = s.isPaid
-    ? 'text-green-600 dark:text-green-500'
-    : isUrgent
-      ? 'text-red-500'
-      : 'text-neutral-900 dark:text-white';
+  const headlineColor = s.isPaid ? 'text-income' : isUrgent ? 'text-expense' : 'text-ink';
 
   return (
-    <View className="gap-0.5 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+    <View className="gap-0.5 border-t border-line pt-3">
       <Text className={`text-sm font-semibold ${headlineColor}`}>{headline}</Text>
       {isUrgent && !isOverdue ? (
-        <Text className="text-xs text-red-500">
+        <Text className="text-xs text-expense">
           {s.daysUntilDue === 0
             ? 'Vence hoy'
             : `Faltan ${s.daysUntilDue} ${s.daysUntilDue === 1 ? 'día' : 'días'}`}
         </Text>
       ) : null}
-      <Text className="text-xs text-neutral-500">
+      <Text className="text-xs text-ink-muted">
         Corte: {formatShortDate(s.lastCutDate)} · Próximo corte: {formatShortDate(s.nextCutDate)}
       </Text>
       {s.msiPending > 0 ? (
-        <Text className="text-xs text-neutral-500">
+        <Text className="text-xs text-ink-muted">
           MSI pendientes: {formatAmount(s.msiPending, currency)}
         </Text>
       ) : null}

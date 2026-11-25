@@ -2,8 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -63,16 +64,14 @@ export function AccountForm({
   return (
     <Screen>
       <FormScrollView>
-        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">{title}</Text>
+        <Text className="font-display text-3xl font-bold text-ink">{title}</Text>
 
         {isEdit ? (
           <View className="gap-1.5">
-            <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Tipo</Text>
-            <View className="rounded-xl border border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
-              <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-                {ACCOUNT_TYPES[type].label}
-              </Text>
-              <Text className="text-xs text-neutral-500">
+            <Text className="text-sm font-medium text-ink-muted">Tipo</Text>
+            <View className="rounded-xl border border-line bg-sunken px-4 py-3">
+              <Text className="text-base font-semibold text-ink">{ACCOUNT_TYPES[type].label}</Text>
+              <Text className="text-xs text-ink-muted">
                 El tipo no se puede cambiar porque tus movimientos dependen de él.
               </Text>
             </View>
@@ -131,7 +130,7 @@ export function AccountForm({
                 error={formState.errors.balance?.message}
               />
               {isEdit ? (
-                <Text className="text-xs text-neutral-500">
+                <Text className="text-xs text-ink-muted">
                   Si no coincide con tu banco, corrígelo aquí. Tus movimientos no cambian.
                 </Text>
               ) : null}
@@ -197,13 +196,13 @@ export function AccountForm({
                 />
               </View>
             </View>
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-ink-muted">
               Lo encuentras en tu estado de cuenta. Te diremos cuánto pagar y antes de qué fecha.
             </Text>
           </View>
         ) : null}
 
-        {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
+        {error ? <Text className="text-sm text-expense">{error}</Text> : null}
 
         <View className="gap-3">
           <Button title={submitLabel} loading={isSubmitting} onPress={() => submit()} />

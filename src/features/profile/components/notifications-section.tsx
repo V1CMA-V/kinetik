@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, Linking, Text, View } from 'react-native';
+import { Alert, Linking, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Chip } from '@/components/ui/chip';
 import {
   useNotificationPermission,
@@ -85,7 +86,7 @@ export function NotificationsSection() {
             onValueChange={setSubscriptionReminders}
           />
           <View className="gap-3 px-4 py-3">
-            <Text className="text-base text-neutral-900 dark:text-white">Avisarme</Text>
+            <Text className="text-base text-ink">Avisarme</Text>
             <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">
               {REMINDER_DAYS_OPTIONS.map((days) => (
                 <Chip
@@ -96,7 +97,7 @@ export function NotificationsSection() {
                 />
               ))}
             </View>
-            <Text className="text-xs text-neutral-500">antes, a las 9:00</Text>
+            <Text className="text-xs text-ink-muted">antes, a las 9:00</Text>
           </View>
         </>
       ) : null}

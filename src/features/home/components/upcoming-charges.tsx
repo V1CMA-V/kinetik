@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import type { Subscription } from '@/features/subscriptions/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatDay } from '@/lib/date';
@@ -37,41 +38,32 @@ export function UpcomingCharges({ subscriptions, days, msi }: Props) {
               className="flex-row items-center gap-3 active:opacity-80"
             >
               <View className="flex-1 gap-0.5">
-                <Text
-                  numberOfLines={1}
-                  className="text-base font-semibold text-neutral-900 dark:text-white"
-                >
+                <Text numberOfLines={1} className="text-base font-semibold text-ink">
                   {s.name}
                 </Text>
-                <Text numberOfLines={1} className="text-xs text-neutral-500">
+                <Text numberOfLines={1} className="text-xs text-ink-muted">
                   {formatDay(s.next_charge_on)}
                   {s.account ? ` · ${s.account.name}` : ''}
                 </Text>
               </View>
-              <Text className="text-base font-bold text-neutral-900 dark:text-white">
-                {formatAmount(s.amount)}
-              </Text>
+              <Text className="text-base font-bold text-ink">{formatAmount(s.amount)}</Text>
             </Pressable>
           ))
         ) : (
-          <Text className="text-sm text-neutral-500">
+          <Text className="text-sm text-ink-muted">
             Sin suscripciones en los próximos {days} días.
           </Text>
         )}
 
         {msi.plans > 0 ? (
-          <View className="flex-row items-center justify-between gap-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+          <View className="flex-row items-center justify-between gap-3 border-t border-line pt-3">
             <View className="flex-1 gap-0.5">
-              <Text className="text-sm font-semibold text-neutral-900 dark:text-white">
-                Compras a meses
-              </Text>
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-sm font-semibold text-ink">Compras a meses</Text>
+              <Text className="text-xs text-ink-muted">
                 {msi.plans === 1 ? '1 plan activo' : `${msi.plans} planes activos`} · por pagar
               </Text>
             </View>
-            <Text className="text-base font-bold text-neutral-900 dark:text-white">
-              {formatAmount(msi.pending)}
-            </Text>
+            <Text className="text-base font-bold text-ink">{formatAmount(msi.pending)}</Text>
           </View>
         ) : null}
       </HomeCard>

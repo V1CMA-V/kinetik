@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Chip } from '@/components/ui/chip';
 import { addDays, formatDay, parseISODate, today, toISODate } from '@/lib/date';
 
@@ -35,7 +36,7 @@ export function DateField({ value, onChange, label = 'Fecha', allowFuture = fals
 
   return (
     <View className="gap-1.5">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</Text>
+      <Text className="text-sm font-medium text-ink-muted">{label}</Text>
       <View className="flex-row gap-2">
         <Chip label="Hoy" selected={value === now} onPress={() => onChange(now)} />
         <Chip
@@ -50,13 +51,11 @@ export function DateField({ value, onChange, label = 'Fecha', allowFuture = fals
           </>
         ) : null}
       </View>
-      <View className="h-12 flex-row items-center rounded-xl border border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+      <View className="h-12 flex-row items-center rounded-xl border border-outline bg-card">
         <StepButton label="‹" onPress={() => onChange(addDays(value, -1))} />
         <View className="flex-1 items-center">
-          <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-            {formatDay(value)}
-          </Text>
-          <Text className="text-xs text-neutral-500">{fullDate.format(parseISODate(value))}</Text>
+          <Text className="text-base font-semibold text-ink">{formatDay(value)}</Text>
+          <Text className="text-xs text-ink-muted">{fullDate.format(parseISODate(value))}</Text>
         </View>
         <StepButton
           label="›"
@@ -85,7 +84,7 @@ function StepButton({
       disabled={disabled}
       className="h-full w-12 items-center justify-center active:opacity-60 disabled:opacity-30"
     >
-      <Text className="text-2xl text-neutral-700 dark:text-neutral-300">{label}</Text>
+      <Text className="text-2xl text-ink-muted">{label}</Text>
     </Pressable>
   );
 }

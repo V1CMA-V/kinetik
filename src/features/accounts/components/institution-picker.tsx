@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 
 import { INSTITUTIONS } from '../constants';
@@ -31,8 +32,8 @@ export function InstitutionPicker({ value = '', onChange, error }: Props) {
 
   return (
     <View className="gap-1.5">
-      <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-        Banco <Text className="font-normal text-neutral-500">(opcional)</Text>
+      <Text className="text-sm font-medium text-ink-muted">
+        Banco <Text className="font-normal text-ink-muted">(opcional)</Text>
       </Text>
       <ScrollView
         horizontal
@@ -49,16 +50,10 @@ export function InstitutionPicker({ value = '', onChange, error }: Props) {
               accessibilityState={{ selected }}
               onPress={() => select(option)}
               className={`rounded-full border px-4 py-2 active:opacity-80 ${
-                selected
-                  ? 'border-brand-500 bg-brand-500'
-                  : 'border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
+                selected ? 'border-accent bg-accent' : 'border-outline bg-card'
               }`}
             >
-              <Text
-                className={`text-sm font-medium ${
-                  selected ? 'text-white' : 'text-neutral-900 dark:text-neutral-100'
-                }`}
-              >
+              <Text className={`text-sm font-medium ${selected ? 'text-on-accent' : 'text-ink'}`}>
                 {option}
               </Text>
             </Pressable>
@@ -74,7 +69,7 @@ export function InstitutionPicker({ value = '', onChange, error }: Props) {
           autoFocus
         />
       ) : error ? (
-        <Text className="text-sm text-red-500">{error}</Text>
+        <Text className="text-sm text-expense">{error}</Text>
       ) : null}
     </View>
   );

@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/stores/auth-store';
@@ -60,7 +61,7 @@ function DisplayNameRow({ displayName }: { displayName: string | null }) {
   }
 
   return (
-    <View className="gap-3 border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+    <View className="gap-3 border-b border-line px-4 py-3">
       <Input
         label="Nombre"
         placeholder="Cómo quieres que te llamemos"
@@ -74,7 +75,7 @@ function DisplayNameRow({ displayName }: { displayName: string | null }) {
         onSubmitEditing={save}
         error={validationError ?? updateDisplayName.error?.message}
       />
-      <Text className="text-xs text-neutral-500">
+      <Text className="text-xs text-ink-muted">
         Se muestra en el saludo de Inicio. Déjalo vacío para quitarlo.
       </Text>
       <View className="flex-row gap-2">

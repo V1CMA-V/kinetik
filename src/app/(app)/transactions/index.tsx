@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, SectionList, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, SectionList, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,13 +55,11 @@ export default function TransactionsScreen() {
         onRefresh={transactions.refetch}
         ListHeaderComponent={
           <View className="mb-2 gap-5">
-            <Text className="text-3xl font-bold text-neutral-900 dark:text-white">Movimientos</Text>
+            <Text className="font-display text-3xl font-bold text-ink">Movimientos</Text>
 
             <View className="flex-row items-center justify-between">
               <MonthButton label="‹" onPress={() => setMonth(addMonths(month, -1))} />
-              <Text className="text-lg font-semibold text-neutral-900 dark:text-white">
-                {formatMonth(month)}
-              </Text>
+              <Text className="text-lg font-semibold text-ink">{formatMonth(month)}</Text>
               <MonthButton
                 label="›"
                 disabled={isCurrentMonth}
@@ -69,12 +68,14 @@ export default function TransactionsScreen() {
             </View>
 
             <View className="flex-row gap-3">
-              <SummaryCard label="Ingresos" value={income} className="text-green-600" />
-              <SummaryCard label="Gastos" value={expense} className="text-red-500" />
+              <SummaryCard label="Ingresos" value={income} className="text-income" />
+              <SummaryCard label="Gastos" value={expense} className="text-expense" />
             </View>
-            <View className="flex-row items-center justify-between rounded-2xl bg-brand-500 px-5 py-4">
-              <Text className="text-sm text-brand-50">Balance del mes</Text>
-              <Text className="text-xl font-bold text-white">{formatAmount(balance)}</Text>
+            <View className="flex-row items-center justify-between rounded-card bg-accent px-5 py-4">
+              <Text className="text-sm text-on-accent-muted">Balance del mes</Text>
+              <Text className="font-display text-xl font-bold text-on-accent">
+                {formatAmount(balance)}
+              </Text>
             </View>
 
             <View className="gap-3">
@@ -99,7 +100,7 @@ export default function TransactionsScreen() {
           </View>
         }
         renderSectionHeader={({ section }) => (
-          <Text className="mb-2 mt-5 text-sm font-semibold text-neutral-500">{section.title}</Text>
+          <Text className="mb-2 mt-5 text-sm font-semibold text-ink-muted">{section.title}</Text>
         )}
         renderItem={({ item }) => (
           <View className="mb-2">
@@ -116,16 +117,16 @@ export default function TransactionsScreen() {
           transactions.isPending ? (
             <ActivityIndicator className="mt-8" />
           ) : transactions.isError ? (
-            <Text className="mt-8 text-center text-red-500">{transactions.error.message}</Text>
+            <Text className="mt-8 text-center text-expense">{transactions.error.message}</Text>
           ) : (
-            <Text className="mt-8 text-center text-neutral-500">
+            <Text className="mt-8 text-center text-ink-muted">
               No hay movimientos en {formatMonth(month).toLowerCase()}.
             </Text>
           )
         }
         ListFooterComponent={
           sections.length ? (
-            <Text className="mt-3 text-center text-xs text-neutral-500">
+            <Text className="mt-3 text-center text-xs text-ink-muted">
               Toca para editar · mantén presionado para eliminar
             </Text>
           ) : undefined
@@ -146,8 +147,8 @@ function SummaryCard({
 }) {
   const formatAmount = useFormatMoney();
   return (
-    <View className="flex-1 gap-1 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      <Text className="text-xs text-neutral-500">{label}</Text>
+    <View className="flex-1 gap-1 rounded-card border border-line bg-card p-4">
+      <Text className="text-xs text-ink-muted">{label}</Text>
       <Text className={`text-lg font-bold ${className}`}>{formatAmount(value)}</Text>
     </View>
   );
@@ -168,9 +169,9 @@ function MonthButton({
       accessibilityLabel={label === '‹' ? 'Mes anterior' : 'Mes siguiente'}
       onPress={onPress}
       disabled={disabled}
-      className="h-10 w-10 items-center justify-center rounded-full bg-neutral-200 active:opacity-70 disabled:opacity-30 dark:bg-neutral-800"
+      className="h-10 w-10 items-center justify-center rounded-full bg-sunken active:opacity-70 disabled:opacity-30"
     >
-      <Text className="text-xl text-neutral-900 dark:text-white">{label}</Text>
+      <Text className="text-xl text-ink">{label}</Text>
     </Pressable>
   );
 }

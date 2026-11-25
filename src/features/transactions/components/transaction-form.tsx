@@ -2,8 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { type ReactNode, useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
 import { type Account, useAccounts } from '@/features/accounts/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { useThemeColors } from '@/theme/colors';
 
 import {
   EXPENSE_CATEGORIES,
@@ -55,7 +57,7 @@ export function TransactionForm(props: Props) {
   if (!accounts.data?.length) {
     return (
       <Screen className="justify-center gap-4">
-        <Text className="text-center text-base text-neutral-500">
+        <Text className="text-center text-base text-ink-muted">
           Primero agrega una cuenta para registrar movimientos.
         </Text>
         <Button title="Agregar cuenta" onPress={() => router.replace('/accounts/new')} />
@@ -79,6 +81,7 @@ function TransactionFields({
   accounts: accountList,
 }: Props & { accounts: Account[] }) {
   const formatAmount = useFormatMoney();
+  const colors = useThemeColors();
   const { control, handleSubmit, formState, setValue, getValues } = useForm<
     TransactionFormInput,
     unknown,
@@ -127,10 +130,10 @@ function TransactionFields({
   return (
     <Screen>
       <FormScrollView>
-        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">{title}</Text>
+        <Text className="font-display text-3xl font-bold text-ink">{title}</Text>
 
         {/* Kind */}
-        <View className="flex-row rounded-xl bg-neutral-200 p-1 dark:bg-neutral-800">
+        <View className="flex-row rounded-xl bg-sunken p-1">
           {TRANSACTION_KIND_ORDER.map((k) => {
             const selected = k === kind;
             return (
@@ -139,14 +142,10 @@ function TransactionFields({
                 accessibilityRole="tab"
                 accessibilityState={{ selected }}
                 onPress={() => changeKind(k)}
-                className={`flex-1 items-center rounded-lg py-2.5 ${
-                  selected ? 'bg-white dark:bg-neutral-950' : ''
-                }`}
+                className={`flex-1 items-center rounded-lg py-2.5 ${selected ? 'bg-surface' : ''}`}
               >
                 <Text
-                  className={`text-sm font-semibold ${
-                    selected ? 'text-neutral-900 dark:text-white' : 'text-neutral-500'
-                  }`}
+                  className={`text-sm font-semibold ${selected ? 'text-ink' : 'text-ink-muted'}`}
                 >
                   {TRANSACTION_KINDS[k].label}
                 </Text>
@@ -161,24 +160,24 @@ function TransactionFields({
           name="amount"
           render={({ field: { onChange, onBlur, value } }) => (
             <View className="items-center gap-1">
-              <Text className="text-sm font-medium text-neutral-500">Cantidad</Text>
+              <Text className="text-sm font-medium text-ink-muted">Cantidad</Text>
               <View className="flex-row items-center">
-                <Text className="text-4xl font-bold text-neutral-400">$</Text>
+                <Text className="font-display text-4xl font-bold text-ink-muted">$</Text>
                 <TextInput
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   placeholder="0.00"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors['ink-muted']}
                   keyboardType="decimal-pad"
                   autoFocus={mode === 'create'}
-                  className={`min-w-32 text-center text-5xl font-bold ${
-                    kind === 'income' ? 'text-green-600' : 'text-neutral-900 dark:text-white'
+                  className={`min-w-32 text-center font-display text-5xl font-bold ${
+                    kind === 'income' ? 'text-income' : 'text-ink'
                   }`}
                 />
               </View>
               {formState.errors.amount ? (
-                <Text className="text-sm text-red-500">{formState.errors.amount.message}</Text>
+                <Text className="text-sm text-expense">{formState.errors.amount.message}</Text>
               ) : null}
             </View>
           )}
@@ -214,7 +213,7 @@ function TransactionFields({
                   error={formState.errors.toAccountId?.message}
                 />
                 {toAccount?.type === 'credit_card' ? (
-                  <Text className="text-xs text-neutral-500">
+                  <Text className="text-xs text-ink-muted">
                     Pago de tarjeta: reduce la deuda de {toAccount.name}.
                   </Text>
                 ) : null}
@@ -229,10 +228,8 @@ function TransactionFields({
             control={control}
             name="installmentMonths"
             render={({ field: { value, onChange } }) => (
-              <View className="gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-                <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  ¿Meses sin intereses?
-                </Text>
+              <View className="gap-2 rounded-card border border-line p-4">
+                <Text className="text-sm font-medium text-ink-muted">¿Meses sin intereses?</Text>
                 <View className="flex-row flex-wrap gap-2">
                   <Chip label="No" selected={value === null} onPress={() => onChange(null)} />
                   {INSTALLMENT_OPTIONS.map((months) => (
@@ -245,9 +242,9 @@ function TransactionFields({
                   ))}
                 </View>
                 {value && numericAmount > 0 ? (
-                  <Text className="text-sm text-neutral-600 dark:text-neutral-400">
+                  <Text className="text-sm text-ink-muted">
                     {value} pagos de{' '}
-                    <Text className="font-semibold text-neutral-900 dark:text-white">
+                    <Text className="font-semibold text-ink">
                       {formatAmount(numericAmount / value)}
                     </Text>
                     . Tu disponible baja {formatAmount(numericAmount)} desde hoy.
@@ -265,16 +262,14 @@ function TransactionFields({
             name="category"
             render={({ field: { value, onChange } }) => (
               <View className="gap-1.5">
-                <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Categoría
-                </Text>
+                <Text className="text-sm font-medium text-ink-muted">Categoría</Text>
                 <View className="flex-row flex-wrap gap-2">
                   {categories.map((c) => (
                     <Chip key={c} label={c} selected={value === c} onPress={() => onChange(c)} />
                   ))}
                 </View>
                 {formState.errors.category ? (
-                  <Text className="text-sm text-red-500">{formState.errors.category.message}</Text>
+                  <Text className="text-sm text-expense">{formState.errors.category.message}</Text>
                 ) : null}
               </View>
             )}
@@ -310,7 +305,7 @@ function TransactionFields({
           )}
         />
 
-        {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
+        {error ? <Text className="text-sm text-expense">{error}</Text> : null}
 
         <View className="gap-3">
           <Button title={submitLabel} loading={isSubmitting} onPress={() => submit()} />

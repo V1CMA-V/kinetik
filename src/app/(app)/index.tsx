@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { useAccounts } from '@/features/accounts/api';
@@ -94,13 +95,10 @@ export default function HomeScreen() {
       >
         <View className="flex-row items-center justify-between gap-3">
           <View className="flex-1 gap-0.5">
-            <Text
-              numberOfLines={1}
-              className="text-3xl font-bold text-neutral-900 dark:text-white"
-            >
-              {displayName ? `Hola, ${displayName} 👋` : 'Hola 👋'}
+            <Text numberOfLines={1} className="font-display text-3xl font-bold text-ink">
+              {displayName ? `Hola, ${displayName}` : 'Hola'}
             </Text>
-            <Text className="text-sm text-neutral-500">{formatMonth(now)}</Text>
+            <Text className="text-sm text-ink-muted">{formatMonth(now)}</Text>
           </View>
           <Pressable
             accessibilityRole="button"
@@ -116,7 +114,7 @@ export default function HomeScreen() {
         {accounts.isPending ? (
           <ActivityIndicator className="mt-8" />
         ) : error ? (
-          <Text className="mt-8 text-center text-red-500">{error.message}</Text>
+          <Text className="mt-8 text-center text-expense">{error.message}</Text>
         ) : (
           <>
             <MoneySummary accounts={accounts.data ?? []} />
@@ -157,7 +155,7 @@ export default function HomeScreen() {
                   ))}
                 </View>
               ) : (
-                <Text className="text-sm text-neutral-500">Aún no hay movimientos este mes.</Text>
+                <Text className="text-sm text-ink-muted">Aún no hay movimientos este mes.</Text>
               )}
             </HomeSection>
 

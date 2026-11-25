@@ -2,8 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { type ReactNode, useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ export function SubscriptionForm(props: Props) {
   if (!accounts.data?.length) {
     return (
       <Screen className="justify-center gap-4">
-        <Text className="text-center text-base text-neutral-500">
+        <Text className="text-center text-base text-ink-muted">
           Primero agrega la cuenta o tarjeta con la que pagas tus suscripciones.
         </Text>
         <Button title="Agregar cuenta" onPress={() => router.replace('/accounts/new')} />
@@ -105,12 +106,10 @@ function SubscriptionFields({
   return (
     <Screen>
       <FormScrollView>
-        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">{title}</Text>
+        <Text className="font-display text-3xl font-bold text-ink">{title}</Text>
 
         <View className="gap-1.5">
-          <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Servicios populares
-          </Text>
+          <Text className="text-sm font-medium text-ink-muted">Servicios populares</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -164,10 +163,8 @@ function SubscriptionFields({
           name="frequency"
           render={({ field: { value, onChange } }) => (
             <View className="gap-1.5">
-              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Frecuencia
-              </Text>
-              <View className="flex-row rounded-xl bg-neutral-200 p-1 dark:bg-neutral-800">
+              <Text className="text-sm font-medium text-ink-muted">Frecuencia</Text>
+              <View className="flex-row rounded-xl bg-sunken p-1">
                 {FREQUENCY_ORDER.map((f) => {
                   const selected = f === value;
                   return (
@@ -177,12 +174,12 @@ function SubscriptionFields({
                       accessibilityState={{ selected }}
                       onPress={() => onChange(f)}
                       className={`flex-1 items-center rounded-lg py-2.5 ${
-                        selected ? 'bg-white dark:bg-neutral-950' : ''
+                        selected ? 'bg-surface' : ''
                       }`}
                     >
                       <Text
                         className={`text-sm font-semibold ${
-                          selected ? 'text-neutral-900 dark:text-white' : 'text-neutral-500'
+                          selected ? 'text-ink' : 'text-ink-muted'
                         }`}
                       >
                         {FREQUENCIES[f].label}
@@ -215,12 +212,12 @@ function SubscriptionFields({
           render={({ field: { value, onChange } }) => (
             <View className="gap-1">
               <DateField label="Próximo cargo" value={value} onChange={onChange} allowFuture />
-              <Text className="text-xs text-neutral-500">{dateHint}</Text>
+              <Text className="text-xs text-ink-muted">{dateHint}</Text>
             </View>
           )}
         />
 
-        {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
+        {error ? <Text className="text-sm text-expense">{error}</Text> : null}
 
         <View className="gap-3">
           <Button title={submitLabel} loading={isSubmitting} onPress={() => submit()} />

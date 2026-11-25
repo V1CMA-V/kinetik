@@ -1,5 +1,6 @@
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { AccountSection } from '@/features/profile/components/account-section';
@@ -25,7 +26,7 @@ export default function ProfileScreen() {
   return (
     <Screen className="pt-6">
       <ScrollView contentContainerClassName="gap-8 pb-10" showsVerticalScrollIndicator={false}>
-        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">Perfil</Text>
+        <Text className="font-display text-3xl font-bold text-ink">Perfil</Text>
 
         <AccountSection />
         <SecuritySection />

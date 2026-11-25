@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, Text, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -53,9 +54,7 @@ export default function ChangePasswordScreen() {
   return (
     <Screen>
       <FormScrollView>
-        <Text className="text-3xl font-bold text-neutral-900 dark:text-white">
-          Cambiar contraseña
-        </Text>
+        <Text className="font-display text-3xl font-bold text-ink">Cambiar contraseña</Text>
 
         <View className="gap-4">
           {FIELDS.map((field) => (
@@ -79,12 +78,12 @@ export default function ChangePasswordScreen() {
               )}
             />
           ))}
-          <Text className="text-xs text-neutral-500">
+          <Text className="text-xs text-ink-muted">
             La nueva contraseña debe tener al menos 8 caracteres.
           </Text>
         </View>
 
-        {generalError ? <Text className="text-sm text-red-500">{generalError}</Text> : null}
+        {generalError ? <Text className="text-sm text-expense">{generalError}</Text> : null}
 
         <View className="gap-3">
           <Button title="Guardar" loading={changePassword.isPending} onPress={() => submit()} />
