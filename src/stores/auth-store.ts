@@ -1,6 +1,8 @@
 import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
+import { cancelAllReminders } from '@/features/notifications/reminders';
+import { clearWidgetSnapshot } from '@/widgets/update';
 import { supabase } from '@/lib/supabase';
 
 type AuthState = {
@@ -18,13 +20,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ session: data.session, isLoading: false });
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      // Scheduled reminders contain the previous user's data.
+      if (event === 'SIGNED_OUT') {
+        cancelAllReminders();
+        clearWidgetSnapshot();
+      }
       set({ session, isLoading: false });
     });
 
     return () => data.subscription.unsubscribe();
   },
   signOut: async () => {
+    await cancelAllReminders();
+    clearWidgetSnapshot();
     await supabase.auth.signOut();
   },
 }));

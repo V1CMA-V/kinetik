@@ -8,6 +8,8 @@ import { colorScheme as nwColorScheme, useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
+import { QuickActionsHandler } from '@/features/quick-actions/quick-actions';
+import { AppLock } from '@/features/security/app-lock';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSettingsStore } from '@/stores/settings-store';
@@ -46,6 +48,8 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)" />
             </Stack.Protected>
           </Stack>
+          <QuickActionsHandler />
+          <AppLock />
         </ThemeProvider>
       </QueryClientProvider>
     </KeyboardProvider>
