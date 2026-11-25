@@ -9,6 +9,7 @@ import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
+import { DialogHost } from '@/components/ui/dialog';
 import { QuickActionsHandler } from '@/features/quick-actions/quick-actions';
 import { AppLock } from '@/features/security/app-lock';
 import { queryClient } from '@/lib/query-client';
@@ -82,6 +83,7 @@ export default function RootLayout() {
             </Stack>
             <QuickActionsHandler />
             <AppLock />
+            <DialogHost />
           </ThemeProvider>
         </QueryClientProvider>
       </KeyboardProvider>
