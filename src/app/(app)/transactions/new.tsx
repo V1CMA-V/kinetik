@@ -12,7 +12,7 @@ import { useSettingsStore } from '@/stores/settings-store';
  * `kinetik://transactions/new?kind=expense|income|transfer`.
  */
 export default function NewTransactionScreen() {
-  const params = useLocalSearchParams<{ kind?: string }>();
+  const params = useLocalSearchParams<{ kind?: string; accountId?: string }>();
   const kind: TransactionKind = TRANSACTION_KIND_ORDER.includes(params.kind as TransactionKind)
     ? (params.kind as TransactionKind)
     : 'expense';
@@ -23,9 +23,15 @@ export default function NewTransactionScreen() {
   const lastCategories = useSettingsStore((s) => s.lastCategories);
   const rememberTransaction = useSettingsStore((s) => s.rememberTransaction);
 
-  // Preselect the last used account if it's still active (the form falls back to the first one).
-  const accountId =
-    lastAccountId && accounts.data?.some((a) => a.id === lastAccountId) ? lastAccountId : '';
+  // Preselect the account passed in (e.g. from its detail screen), else the last used one if
+  // it's still active (the form falls back to the first one).
+  const isActive = (id: string | null | undefined): id is string =>
+    !!id && !!accounts.data?.some((a) => a.id === id);
+  const accountId = isActive(params.accountId)
+    ? params.accountId
+    : isActive(lastAccountId)
+      ? lastAccountId
+      : '';
   const category = kind === 'transfer' ? undefined : lastCategories[kind];
 
   return (

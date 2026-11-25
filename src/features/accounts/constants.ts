@@ -40,3 +40,11 @@ export const INSTITUTIONS = [
 ] as const;
 
 export const DEFAULT_CURRENCY = 'MXN';
+
+/** Stripe/dot color per account type, so accounts can be told apart at a glance. */
+export const ACCOUNT_TYPE_COLOR: Record<AccountType, string> = {
+  bank_account: 'bg-accent',
+  investment: 'bg-ink',
+  cash: 'bg-income',
+  credit_card: 'bg-outline',
+};
