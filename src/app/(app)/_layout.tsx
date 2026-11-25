@@ -33,10 +33,7 @@ export default function AppLayout() {
     >
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Inicio</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
+        <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="accounts">
         <NativeTabs.Trigger.Label>Cuentas</NativeTabs.Trigger.Label>
@@ -52,11 +49,18 @@ export default function AppLayout() {
           md="receipt_long"
         />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="analysis">
+        <NativeTabs.Trigger.Label>Análisis</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'chart.bar', selected: 'chart.bar.fill' }}
+          md="bar_chart"
+        />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          sf={{ default: 'person.crop.circle', selected: 'person.crop.circle.fill' }}
+          md="account_circle"
         />
       </NativeTabs.Trigger>
     </NativeTabs>
