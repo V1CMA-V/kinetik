@@ -65,6 +65,7 @@ export function NotificationsSection() {
     <Section title="Notificaciones">
       <SwitchRow
         label="Recordatorios"
+        icon={{ ios: 'bell', android: 'notifications' }}
         description={description}
         value={enabled && !revoked}
         onValueChange={onToggle}

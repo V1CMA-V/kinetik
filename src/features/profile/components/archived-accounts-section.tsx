@@ -9,9 +9,10 @@ export function ArchivedAccountsSection() {
   const count = archived.data?.length;
 
   return (
-    <Section title="Cuentas">
+    <Section title="Tus cuentas">
       <SettingsRow
         label="Cuentas archivadas"
+        icon={{ ios: 'archivebox', android: 'archive' }}
         value={count == null ? undefined : count === 0 ? 'Ninguna' : String(count)}
         onPress={() => router.push('/profile/archived-accounts')}
         last

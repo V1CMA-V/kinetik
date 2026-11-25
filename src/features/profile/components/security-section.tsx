@@ -38,6 +38,7 @@ export function SecuritySection() {
     <Section title="Seguridad">
       <SwitchRow
         label={`Bloquear con ${name}`}
+        icon={{ ios: 'lock.shield', android: 'shield' }}
         description={description}
         value={biometricLock}
         onValueChange={onValueChange}

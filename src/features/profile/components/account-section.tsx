@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
@@ -11,16 +11,31 @@ import { getDisplayName, useUpdateDisplayName } from '../api';
 import { DISPLAY_NAME_MAX_LENGTH, displayNameSchema } from '../schemas';
 import { Section, SettingsRow } from './settings';
 
-export function AccountSection() {
+type AccountSectionProps = {
+  /** Controlled from the screen so the header "Editar" button can open the name editor. */
+  editingName: boolean;
+  onEditingNameChange: (editing: boolean) => void;
+};
+
+export function AccountSection({ editingName, onEditingNameChange }: AccountSectionProps) {
   const user = useAuthStore((s) => s.session?.user);
   const displayName = getDisplayName(user);
 
   return (
-    <Section title="Tu cuenta">
-      <DisplayNameRow displayName={displayName} />
-      <SettingsRow label="Correo" value={user?.email ?? ''} />
+    <Section title="Cuenta">
+      <DisplayNameRow
+        displayName={displayName}
+        isEditing={editingName}
+        setIsEditing={onEditingNameChange}
+      />
+      <SettingsRow
+        label="Correo"
+        icon={{ ios: 'envelope', android: 'mail' }}
+        value={user?.email ?? ''}
+      />
       <SettingsRow
         label="Cambiar contraseña"
+        icon={{ ios: 'lock', android: 'lock' }}
         onPress={() => router.push('/profile/password')}
         last
       />
@@ -29,18 +44,37 @@ export function AccountSection() {
 }
 
 /** Android has no `Alert.prompt`, so the name is edited inline inside the section. */
-function DisplayNameRow({ displayName }: { displayName: string | null }) {
-  const [isEditing, setIsEditing] = useState(false);
+function DisplayNameRow({
+  displayName,
+  isEditing,
+  setIsEditing,
+}: {
+  displayName: string | null;
+  isEditing: boolean;
+  setIsEditing: (editing: boolean) => void;
+}) {
   const [draft, setDraft] = useState('');
   const [validationError, setValidationError] = useState<string>();
   const updateDisplayName = useUpdateDisplayName();
 
-  const startEditing = () => {
-    setDraft(displayName ?? '');
-    setValidationError(undefined);
-    updateDisplayName.reset();
-    setIsEditing(true);
-  };
+  // Editing can also be opened from outside (the header "Editar" button): reset the
+  // draft whenever the editor opens, during render instead of in an effect.
+  const [wasEditing, setWasEditing] = useState(isEditing);
+  if (isEditing !== wasEditing) {
+    setWasEditing(isEditing);
+    if (isEditing) {
+      setDraft(displayName ?? '');
+      setValidationError(undefined);
+    }
+  }
+
+  // Clear the previous save error when the editor opens (mutation state, so not in render).
+  const { reset } = updateDisplayName;
+  useEffect(() => {
+    if (isEditing) reset();
+  }, [isEditing, reset]);
+
+  const startEditing = () => setIsEditing(true);
 
   const save = () => {
     const parsed = displayNameSchema.safeParse(draft);
@@ -57,7 +91,14 @@ function DisplayNameRow({ displayName }: { displayName: string | null }) {
   };
 
   if (!isEditing) {
-    return <SettingsRow label="Nombre" value={displayName ?? 'Agregar'} onPress={startEditing} />;
+    return (
+      <SettingsRow
+        label="Nombre"
+        icon={{ ios: 'person', android: 'person' }}
+        value={displayName ?? 'Agregar'}
+        onPress={startEditing}
+      />
+    );
   }
 
   return (

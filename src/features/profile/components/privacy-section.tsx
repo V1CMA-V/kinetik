@@ -10,6 +10,7 @@ export function PrivacySection() {
     <Section title="Privacidad">
       <SwitchRow
         label="Ocultar montos"
+        icon={{ ios: 'eye.slash', android: 'visibility_off' }}
         description="Muestra $ •••• en lugar de tus saldos y cantidades"
         value={hideAmounts}
         onValueChange={setHideAmounts}
