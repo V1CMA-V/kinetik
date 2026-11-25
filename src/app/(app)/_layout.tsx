@@ -2,7 +2,9 @@ import { NativeTabs } from 'expo-router/native-tabs';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 
+import { useReminderScheduler } from '@/features/notifications/use-reminder-scheduler';
 import { useProcessDueSubscriptions } from '@/features/subscriptions/api';
+import { useWidgetSync } from '@/widgets/use-widget-sync';
 
 export default function AppLayout() {
   const { colorScheme } = useColorScheme();
@@ -13,6 +15,12 @@ export default function AppLayout() {
   useEffect(() => {
     processDueSubscriptions();
   }, [processDueSubscriptions]);
+
+  // Local reminders for card payments and upcoming subscription charges.
+  useReminderScheduler();
+
+  // Keeps the Android home-screen widget (month spending) up to date.
+  useWidgetSync();
 
   return (
     <NativeTabs
