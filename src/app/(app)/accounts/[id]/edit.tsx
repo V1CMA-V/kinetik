@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert, Text } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { useAccount, useArchiveAccount, useUpdateAccount } from '@/features/accounts/api';
@@ -24,7 +25,7 @@ export default function EditAccountScreen() {
   if (!account.data) {
     return (
       <Screen className="justify-center gap-4">
-        <Text className="text-center text-base text-neutral-500">
+        <Text className="text-center text-base text-ink-muted">
           {account.error?.message ?? 'No encontramos esta cuenta.'}
         </Text>
         <Button title="Volver" variant="secondary" onPress={() => router.back()} />
@@ -40,7 +41,9 @@ export default function EditAccountScreen() {
       {
         text: 'Archivar',
         style: 'destructive',
-        onPress: () => archive.mutate(current.id, { onSuccess: () => router.back() }),
+        // The detail screen behind this modal belongs to the archived account, so go to the list.
+        onPress: () =>
+          archive.mutate(current.id, { onSuccess: () => router.dismissTo('/accounts') }),
       },
     ]);
   };

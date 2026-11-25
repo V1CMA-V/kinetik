@@ -15,6 +15,8 @@ export const transactionKeys = {
   all: ['transactions'] as const,
   month: (month: string) => [...transactionKeys.all, 'month', month] as const,
   detail: (id: string) => [...transactionKeys.all, 'detail', id] as const,
+  account: (accountId: string, month: string) =>
+    [...transactionKeys.all, 'account', accountId, month] as const,
 };
 
 /** Transactions of the month that contains `month` (any `YYYY-MM-DD` in it). */
@@ -38,6 +40,30 @@ export function useMonthTransactions(month: string) {
 }
 
 export type Transaction = NonNullable<ReturnType<typeof useMonthTransactions>['data']>[number];
+
+/**
+ * Transactions of one account in the month that contains `month`: the ones made
+ * from it and the transfers into it.
+ */
+export function useAccountTransactions(accountId: string, month: string) {
+  const { start, end } = monthRange(month);
+
+  return useQuery({
+    queryKey: transactionKeys.account(accountId, start),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(TRANSACTION_SELECT)
+        .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`)
+        .gte('occurred_on', start)
+        .lte('occurred_on', end)
+        .order('occurred_on', { ascending: false })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
 
 /** A single transaction; `null` if it doesn't exist (e.g. right after deleting it). */
 export function useTransaction(id: string) {
