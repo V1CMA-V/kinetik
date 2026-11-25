@@ -1,7 +1,7 @@
 // Kinetik design system colors — the single source for Tailwind (tailwind.config.js)
 // and for native props that can't take a className (src/theme/colors.ts).
-// Light values come from the design system's tokens.json; dark is derived from it
-// (warm, ink-based surfaces, same contrast rules: text ≥ 4.5:1, control borders ≥ 3:1).
+// Light and dark values come from the design system (dark: warm charcoal surfaces)
+// with the same contrast rules: text ≥ 4.5:1, control borders ≥ 3:1.
 // Plain CommonJS so tailwind.config.js can require it.
 
 /** @typedef {'surface'|'card'|'sunken'|'line'|'outline'|'ink'|'ink-muted'|'accent'|'on-accent'|'on-accent-muted'|'accent-soft'|'accent-ink'|'income'|'expense'|'expense-soft'|'warning'} Token */
@@ -27,19 +27,19 @@ const palette = {
     warning: '#9A5B00', // "vence pronto" text and bars
   },
   dark: {
-    surface: '#14141A', // the brand ink as background
-    card: '#1E1D23',
-    sunken: '#2A2930',
-    line: '#36343C',
-    outline: '#77737E',
+    surface: '#15130F', // warm charcoal background
+    card: '#211E19',
+    sunken: '#2C2822',
+    line: '#3A352D',
+    outline: '#7D766A', // warm grey, ≥ 3:1 on surface and card
     ink: '#F6F1E7', // the brand cream as text
-    'ink-muted': '#ABA597',
+    'ink-muted': '#B3AC9F',
     accent: '#FF5A1F', // same orange fill, ink text on top
     'on-accent': '#14141A',
     'on-accent-muted': '#3D1A0A',
     'accent-soft': '#3A2219',
     'accent-ink': '#FF8A5C',
-    income: '#4CC38A',
+    income: '#3DD68C',
     expense: '#FF7A74',
     'expense-soft': '#3A1E20',
     warning: '#F0B44C',
