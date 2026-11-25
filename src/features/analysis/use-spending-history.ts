@@ -1,12 +1,14 @@
 import { useMonthSpending } from '@/features/budgets/api';
 import { addMonths } from '@/lib/date';
 
-/** Months shown in the column chart, ending at the selected one. */
+import { useIncomeHistory } from './api';
+
+/** Months shown in the column charts, ending at the selected one. */
 export const HISTORY_MONTHS = 6;
 
 /**
- * Spending of the 6 months that end at `month` (oldest first). Fixed number of
- * hooks, so it's safe to call on every render.
+ * Spending and income of the 6 months that end at `month` (oldest first). Fixed
+ * number of hooks, so it's safe to call on every render.
  */
 export function useSpendingHistory(month: string) {
   const months = [5, 4, 3, 2, 1, 0].map((back) => addMonths(month, -back));
@@ -18,12 +20,20 @@ export function useSpendingHistory(month: string) {
     useMonthSpending(months[4]),
     useMonthSpending(months[5]),
   ];
+  const income = useIncomeHistory(months);
 
   return {
-    months: months.map((m, i) => ({ month: m, spending: queries[i].data })),
-    isPending: queries[5].isPending,
-    error: queries.find((q) => q.error)?.error ?? null,
-    isRefetching: queries.some((q) => q.isRefetching),
-    refetch: () => queries.forEach((q) => q.refetch()),
+    months: months.map((m, i) => ({
+      month: m,
+      spending: queries[i].data,
+      income: income.data?.[i],
+    })),
+    isPending: queries[5].isPending || income.isPending,
+    error: queries.find((q) => q.error)?.error ?? income.error ?? null,
+    isRefetching: queries.some((q) => q.isRefetching) || income.isRefetching,
+    refetch: () => {
+      queries.forEach((q) => q.refetch());
+      income.refetch();
+    },
   };
 }

@@ -1,26 +1,31 @@
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
-import { SpendingChart } from '@/features/analysis/components/spending-chart';
+import { CashflowCard } from '@/features/analysis/components/cashflow-card';
+import { CategoryBreakdown } from '@/features/analysis/components/category-breakdown';
+import { MonthProjectionCard } from '@/features/analysis/components/month-projection';
+import { computeProjection } from '@/features/analysis/projection';
 import { useSpendingHistory } from '@/features/analysis/use-spending-history';
+import { useBudgetProgress } from '@/features/budgets/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatMonth, monthRange, today } from '@/lib/date';
-
-/** Categories below this share of the month get a muted bar. */
-const SMALL_SHARE = 0.1;
 
 export default function AnalysisScreen() {
   const formatAmount = useFormatMoney();
   const [month, setMonth] = useState(() => monthRange(today()).start);
   const history = useSpendingHistory(month);
+  const budgets = useBudgetProgress(month);
 
-  const current = history.months[history.months.length - 1].spending;
+  const selected = history.months[history.months.length - 1];
   const previous = history.months[history.months.length - 2];
+  const current = selected.spending;
   const previousName = formatMonth(previous.month).split(' ')[0].toLowerCase();
-  const monthName = formatMonth(month).toLowerCase();
+  const monthName = formatMonth(month).split(' ')[0].toLowerCase();
+  const isCurrentMonth = month === monthRange(today()).start;
 
   const comparison = useMemo(() => {
     const prev = previous.spending;
@@ -40,13 +45,36 @@ export default function AnalysisScreen() {
     return { delta, ratio, topRise };
   }, [current, previous.spending]);
 
+  const projection = useMemo(
+    () =>
+      isCurrentMonth && current
+        ? computeProjection(
+            current.byDay,
+            Number(today().slice(8, 10)),
+            previous.spending?.byDay ?? null,
+          )
+        : null,
+    [isCurrentMonth, current, previous.spending],
+  );
+
+  const budgetsByCategory = useMemo(
+    () => new Map((budgets.data?.categories ?? []).map((c) => [c.category, c])),
+    [budgets.data],
+  );
+
   return (
     <Screen className="pt-6">
       <ScrollView
         contentContainerClassName="gap-6 pb-10"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={history.isRefetching} onRefresh={history.refetch} />
+          <RefreshControl
+            refreshing={history.isRefetching}
+            onRefresh={() => {
+              history.refetch();
+              budgets.refetch();
+            }}
+          />
         }
       >
         <View className="gap-4">
@@ -60,77 +88,38 @@ export default function AnalysisScreen() {
           <Text className="mt-8 text-center text-expense">{history.error.message}</Text>
         ) : (
           <>
-            <View className="gap-5 rounded-card border border-line bg-card p-4">
-              <View className="flex-row items-start justify-between gap-3">
-                <View className="flex-1 gap-0.5">
-                  <Text className="text-sm font-medium text-ink-muted">Gastos del mes</Text>
-                  <Text
-                    adjustsFontSizeToFit
-                    numberOfLines={1}
-                    className="font-display text-3xl font-bold tabular-nums text-ink"
-                  >
-                    {formatAmount(current?.total ?? 0)}
-                  </Text>
-                </View>
-                {comparison && comparison.delta !== 0 ? (
-                  <View
-                    className={`rounded-full px-2.5 py-1 ${
-                      comparison.delta > 0 ? 'bg-expense-soft' : 'bg-income/15'
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-semibold tabular-nums ${
-                        comparison.delta > 0 ? 'text-expense' : 'text-income'
-                      }`}
-                    >
-                      {`${comparison.delta > 0 ? '↑' : '↓'} ${Math.round(
-                        Math.abs(comparison.ratio) * 100,
-                      )}% vs ${previousName.slice(0, 3)}`}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
+            <CashflowCard
+              monthName={monthName}
+              income={selected.income ?? 0}
+              expense={current?.total ?? 0}
+              comparison={comparison ? { ...comparison, previousName } : null}
+              history={history.months.map((m) => ({
+                month: m.month,
+                income: m.income,
+                expense: m.spending?.total,
+              }))}
+              selected={month}
+              onSelect={setMonth}
+            />
 
-              <SpendingChart
-                months={history.months.map((m) => ({ month: m.month, total: m.spending?.total }))}
-                selected={month}
-                onSelect={setMonth}
-              />
-            </View>
+            {projection && projection.spentToDate + projection.scheduled > 0 ? (
+              <View className="gap-3">
+                <Text className="text-lg font-bold text-ink">Proyección del mes</Text>
+                <MonthProjectionCard projection={projection} previousName={previousName} />
+              </View>
+            ) : null}
 
             <View className="gap-3">
               <Text className="text-lg font-bold text-ink">Por categoría</Text>
               {current && current.byCategory.length ? (
-                <View className="gap-4">
-                  {current.byCategory.map((c, i) => {
-                    const share = current.total ? c.amount / current.total : 0;
-                    const max = current.byCategory[0].amount;
-                    const barColor =
-                      i === 0 ? 'bg-accent' : share < SMALL_SHARE ? 'bg-ink-muted' : 'bg-ink';
-                    return (
-                      <View key={c.category} className="gap-1.5">
-                        <View className="flex-row items-baseline justify-between gap-3">
-                          <Text numberOfLines={1} className="flex-1 text-base text-ink">
-                            {c.category}
-                            <Text className="text-sm text-ink-muted">
-                              {'  '}
-                              {Math.round(share * 100)}%
-                            </Text>
-                          </Text>
-                          <Text className="text-base font-semibold tabular-nums text-ink">
-                            {formatAmount(c.amount)}
-                          </Text>
-                        </View>
-                        <View className="h-2 overflow-hidden rounded-full bg-sunken">
-                          <View
-                            className={`h-full rounded-full ${barColor}`}
-                            style={{ width: `${max ? (c.amount / max) * 100 : 0}%` }}
-                          />
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
+                <CategoryBreakdown
+                  total={current.total}
+                  categories={current.byCategory}
+                  budgets={budgetsByCategory}
+                  onPressCategory={(category) =>
+                    router.push({ pathname: '/analysis/category', params: { category, month } })
+                  }
+                />
               ) : (
                 <Text className="text-sm text-ink-muted">Aún no hay gastos en {monthName}.</Text>
               )}
@@ -148,6 +137,12 @@ export default function AnalysisScreen() {
                     : ''}
                 </Text>
               </View>
+            ) : null}
+
+            {current && current.installments > 0 ? (
+              <Text className="text-center text-xs text-ink-muted">
+                Las compras a meses cuentan solo la mensualidad de cada mes.
+              </Text>
             ) : null}
           </>
         )}
