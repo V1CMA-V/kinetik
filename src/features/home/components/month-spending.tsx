@@ -12,6 +12,8 @@ type Props = {
   spending: MonthSpending;
   /** Spending of the previous month, for the comparison. */
   previousTotal: number | undefined;
+  /** Name of the previous month, e.g. "octubre". */
+  previousMonthLabel: string;
   income: number;
   /** Only when the user has budgets. */
   budget: BudgetProgress['totals'] | undefined;
@@ -40,12 +42,14 @@ export function MonthSpendingSection({
   monthLabel,
   spending,
   previousTotal,
+  previousMonthLabel,
   income,
   budget,
 }: Props) {
   const formatAmount = useFormatMoney();
   const top = spending.byCategory.slice(0, TOP_CATEGORIES);
   const maxCategory = top[0]?.amount ?? 0;
+  const delta = previousTotal ? spending.total - previousTotal : undefined;
 
   return (
     <HomeSection
@@ -56,24 +60,33 @@ export function MonthSpendingSection({
         <View className="flex-row justify-between gap-3">
           <View className="flex-1 gap-0.5">
             <Text className="text-xs text-ink-muted">Gastado</Text>
-            <Text className="font-display text-2xl font-bold text-ink">
+            <Text className="font-display text-2xl font-bold tabular-nums text-ink">
               {formatAmount(spending.total)}
             </Text>
-            {previousTotal !== undefined ? (
+            {delta !== undefined && delta !== 0 ? (
               <Text className="text-xs text-ink-muted">
-                Mes anterior: {formatAmount(previousTotal)}
+                <Text
+                  className={`text-xs font-semibold tabular-nums ${
+                    delta > 0 ? 'text-expense' : 'text-income'
+                  }`}
+                >
+                  {formatAmount(Math.abs(delta))}
+                </Text>
+                {delta > 0 ? ' más' : ' menos'} que en {previousMonthLabel}
               </Text>
             ) : null}
           </View>
           <View className="items-end gap-0.5">
             <Text className="text-xs text-ink-muted">Ingresos</Text>
-            <Text className="text-base font-semibold text-income">{formatAmount(income)}</Text>
+            <Text className="text-base font-semibold tabular-nums text-income">
+              {formatAmount(income)}
+            </Text>
           </View>
         </View>
 
         {spending.installments > 0 ? (
           <Text className="text-xs text-ink-muted">
-            Incluye {formatAmount(spending.installments)} de mensualidades a meses
+            Incluye {formatAmount(spending.installments)} de mensualidades a meses sin intereses.
           </Text>
         ) : null}
 
@@ -81,7 +94,7 @@ export function MonthSpendingSection({
           <View className="gap-1.5">
             <View className="flex-row justify-between">
               <Text className="text-xs font-medium text-ink-muted">Presupuesto</Text>
-              <Text className="text-xs text-ink-muted">
+              <Text className="text-xs tabular-nums text-ink-muted">
                 {formatAmount(budget.spent)} de {formatAmount(budget.budget)}
               </Text>
             </View>
@@ -90,12 +103,14 @@ export function MonthSpendingSection({
         ) : null}
 
         {top.length ? (
-          <View className="gap-3">
+          <View className="gap-3 border-t border-line pt-4">
             {top.map((c) => (
-              <View key={c.category} className="gap-1">
+              <View key={c.category} className="gap-1.5">
                 <View className="flex-row justify-between">
                   <Text className="text-sm text-ink">{c.category}</Text>
-                  <Text className="text-sm font-semibold text-ink">{formatAmount(c.amount)}</Text>
+                  <Text className="text-sm font-semibold tabular-nums text-ink">
+                    {formatAmount(c.amount)}
+                  </Text>
                 </View>
                 <Bar ratio={maxCategory ? c.amount / maxCategory : 0} className="bg-accent/70" />
               </View>

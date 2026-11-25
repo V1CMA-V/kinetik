@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
+import { groupedRowClass } from '@/components/ui/grouped';
 import { Text } from '@/components/ui/text';
 import type { CardPayment } from '@/features/accounts/statements';
 import { useFormatMoney } from '@/hooks/use-format-money';
@@ -37,34 +38,51 @@ export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
   return (
     <HomeSection
       title="Pagos de tarjetas"
-      aside={payments.length ? formatAmount(total) : undefined}
+      aside={payments.length > 1 ? `Total ${formatAmount(total)}` : undefined}
     >
       {payments.length ? (
-        <View className="gap-2">
-          {payments.map((p) => (
-            <Pressable
-              key={p.accountId}
-              onPress={() =>
-                router.push({ pathname: '/accounts/[id]', params: { id: p.accountId } })
-              }
-              className="active:opacity-80"
-            >
-              <HomeCard className="flex-row items-center gap-3">
+        <View>
+          {payments.map((p, i) => {
+            const overdue = p.daysUntilDue < 0;
+            return (
+              <Pressable
+                key={p.accountId}
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({ pathname: '/accounts/[id]', params: { id: p.accountId } })
+                }
+                className={`flex-row items-center gap-3 px-4 py-3.5 active:opacity-80 ${groupedRowClass(i, payments.length)}`}
+              >
                 <View className="flex-1 gap-0.5">
                   <Text numberOfLines={1} className="text-base font-semibold text-ink">
-                    {[p.institution, p.name].filter(Boolean).join(' · ')}
+                    {p.name}
                   </Text>
-                  <Text className={`text-xs font-medium ${dueColor(p.daysUntilDue)}`}>
+                  <Text
+                    numberOfLines={1}
+                    className={`text-xs font-medium ${dueColor(p.daysUntilDue)}`}
+                  >
                     {dueLabel(p.daysUntilDue)}
-                    {Math.abs(p.daysUntilDue) > 1 ? ` · ${formatDay(p.dueDate)}` : ''}
+                    {Math.abs(p.daysUntilDue) > 1 ? `, ${formatDay(p.dueDate).toLowerCase()}` : ''}
                   </Text>
+                  {p.institution ? (
+                    <Text numberOfLines={1} className="text-xs text-ink-muted">
+                      {p.institution}
+                    </Text>
+                  ) : null}
                 </View>
-                <Text className="text-base font-bold text-ink">
-                  {formatAmount(p.amount, p.currency)}
-                </Text>
-              </HomeCard>
-            </Pressable>
-          ))}
+                <View className="items-end gap-1">
+                  <Text className="text-base font-bold tabular-nums text-ink">
+                    {formatAmount(p.amount, p.currency)}
+                  </Text>
+                  {overdue ? (
+                    <View className="rounded-full bg-expense-soft px-2 py-0.5">
+                      <Text className="text-xs font-semibold text-expense">Vencido</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </Pressable>
+            );
+          })}
         </View>
       ) : (
         <HomeCard>
@@ -75,11 +93,14 @@ export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
         </HomeCard>
       )}
       {unconfiguredCards > 0 ? (
-        <Text className="text-xs text-ink-muted">
-          {unconfiguredCards === 1
-            ? '1 tarjeta no tiene día de corte y de pago configurados.'
-            : `${unconfiguredCards} tarjetas no tienen día de corte y de pago configurados.`}
-        </Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/accounts')}>
+          <Text className="text-xs text-ink-muted">
+            {unconfiguredCards === 1
+              ? '1 tarjeta no tiene día de corte y de pago. '
+              : `${unconfiguredCards} tarjetas no tienen día de corte y de pago. `}
+            <Text className="text-xs font-semibold text-accent-ink">Configurar</Text>
+          </Text>
+        </Pressable>
       ) : null}
     </HomeSection>
   );

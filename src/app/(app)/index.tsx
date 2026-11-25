@@ -1,16 +1,18 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
-import { Button } from '@/components/ui/button';
+import { PrivacyToggle } from '@/components/ui/privacy-toggle';
 import { useAccounts } from '@/features/accounts/api';
 import { useCreditCardStatements } from '@/features/accounts/statements';
 import { useBudgetProgress, useMonthSpending } from '@/features/budgets/api';
+import { BalanceHero } from '@/features/home/components/balance-hero';
 import { HomeSection } from '@/features/home/components/home-section';
-import { MoneySummary } from '@/features/home/components/money-summary';
 import { MonthSpendingSection } from '@/features/home/components/month-spending';
+import { MyAccounts } from '@/features/home/components/my-accounts';
+import { QuickActions } from '@/features/home/components/quick-actions';
 import { UpcomingCharges } from '@/features/home/components/upcoming-charges';
 import { UpcomingPayments } from '@/features/home/components/upcoming-payments';
 import { getDisplayName } from '@/features/profile/api';
@@ -19,17 +21,20 @@ import { useMonthTransactions } from '@/features/transactions/api';
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
 import { addDays, addMonths, formatMonth, today } from '@/lib/date';
 import { useAuthStore } from '@/stores/auth-store';
-import { useSettingsStore } from '@/stores/settings-store';
 
 /** How far ahead "Próximos cargos" looks for subscriptions. */
 const UPCOMING_DAYS = 7;
 const RECENT_TRANSACTIONS = 5;
 
+function greeting(hour: number) {
+  if (hour < 12) return 'Buenos días';
+  if (hour < 19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+
 export default function HomeScreen() {
   const user = useAuthStore((s) => s.session?.user);
   const displayName = getDisplayName(user);
-  const hideAmounts = useSettingsStore((s) => s.hideAmounts);
-  const setHideAmounts = useSettingsStore((s) => s.setHideAmounts);
 
   const now = today();
   const accounts = useAccounts();
@@ -85,30 +90,23 @@ export default function HomeScreen() {
   };
 
   const error = accounts.error ?? statements.error ?? spending.error ?? transactions.error;
+  const showPayments = statements.upcomingPayments.length > 0 || unconfiguredCards > 0;
 
   return (
     <Screen>
       <ScrollView
-        contentContainerClassName="gap-7 pb-10 pt-6"
+        contentContainerClassName="gap-8 pb-10 pt-6"
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refresh} />}
       >
         <View className="flex-row items-center justify-between gap-3">
-          <View className="flex-1 gap-0.5">
+          <View className="flex-1">
+            <Text className="text-sm text-ink-muted">{greeting(new Date().getHours())}</Text>
             <Text numberOfLines={1} className="font-display text-3xl font-bold text-ink">
-              {displayName ? `Hola, ${displayName}` : 'Hola'}
+              {displayName ?? 'Hola'}
             </Text>
-            <Text className="text-sm text-ink-muted">{formatMonth(now)}</Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={hideAmounts ? 'Mostrar montos' : 'Ocultar montos'}
-            hitSlop={8}
-            onPress={() => setHideAmounts(!hideAmounts)}
-            className="h-10 w-10 items-center justify-center rounded-full active:opacity-60"
-          >
-            <Text className="text-xl">{hideAmounts ? '🙈' : '👁'}</Text>
-          </Pressable>
+          <PrivacyToggle />
         </View>
 
         {accounts.isPending ? (
@@ -117,20 +115,26 @@ export default function HomeScreen() {
           <Text className="mt-8 text-center text-expense">{error.message}</Text>
         ) : (
           <>
-            <MoneySummary accounts={accounts.data ?? []} />
+            <View className="gap-6">
+              <BalanceHero accounts={accounts.data ?? []} />
+              <QuickActions />
+            </View>
 
-            {cards.length ? (
+            {cards.length && showPayments ? (
               <UpcomingPayments
                 payments={statements.upcomingPayments}
                 unconfiguredCards={unconfiguredCards}
               />
             ) : null}
 
+            <MyAccounts accounts={accounts.data ?? []} />
+
             {spending.data ? (
               <MonthSpendingSection
                 monthLabel={formatMonth(now).split(' ')[0]}
                 spending={spending.data}
                 previousTotal={previousSpending.data?.total}
+                previousMonthLabel={formatMonth(addMonths(now, -1)).split(' ')[0].toLowerCase()}
                 income={income}
                 budget={budget.data?.totals}
               />
@@ -139,15 +143,16 @@ export default function HomeScreen() {
             <UpcomingCharges subscriptions={upcomingSubscriptions} days={UPCOMING_DAYS} msi={msi} />
 
             <HomeSection
-              title="Últimos movimientos"
+              title="Movimientos"
               action={{ label: 'Ver todos', onPress: () => router.push('/transactions') }}
             >
               {recent.length ? (
-                <View className="gap-2">
-                  {recent.map((t) => (
+                <View>
+                  {recent.map((t, i) => (
                     <TransactionRow
                       key={t.id}
                       transaction={t}
+                      group={{ index: i, count: recent.length }}
                       onPress={() =>
                         router.push({ pathname: '/transactions/[id]', params: { id: t.id } })
                       }
@@ -155,11 +160,11 @@ export default function HomeScreen() {
                   ))}
                 </View>
               ) : (
-                <Text className="text-sm text-ink-muted">Aún no hay movimientos este mes.</Text>
+                <Text className="text-sm text-ink-muted">
+                  Aún no hay movimientos este mes. Registra uno con Gasto o Ingreso.
+                </Text>
               )}
             </HomeSection>
-
-            <Button title="Agregar movimiento" onPress={() => router.push('/transactions/new')} />
           </>
         )}
       </ScrollView>

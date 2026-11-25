@@ -35,6 +35,7 @@ export function UpcomingCharges({ subscriptions, days, msi }: Props) {
               onPress={() =>
                 router.push({ pathname: '/transactions/subscription/[id]', params: { id: s.id } })
               }
+              accessibilityRole="button"
               className="flex-row items-center gap-3 active:opacity-80"
             >
               <View className="flex-1 gap-0.5">
@@ -43,10 +44,12 @@ export function UpcomingCharges({ subscriptions, days, msi }: Props) {
                 </Text>
                 <Text numberOfLines={1} className="text-xs text-ink-muted">
                   {formatDay(s.next_charge_on)}
-                  {s.account ? ` · ${s.account.name}` : ''}
+                  {s.account ? `, con ${s.account.name}` : ''}
                 </Text>
               </View>
-              <Text className="text-base font-bold text-ink">{formatAmount(s.amount)}</Text>
+              <Text className="text-base font-bold tabular-nums text-ink">
+                {formatAmount(s.amount)}
+              </Text>
             </Pressable>
           ))
         ) : (
@@ -60,10 +63,12 @@ export function UpcomingCharges({ subscriptions, days, msi }: Props) {
             <View className="flex-1 gap-0.5">
               <Text className="text-sm font-semibold text-ink">Compras a meses</Text>
               <Text className="text-xs text-ink-muted">
-                {msi.plans === 1 ? '1 plan activo' : `${msi.plans} planes activos`} · por pagar
+                Por pagar en {msi.plans === 1 ? '1 plan activo' : `${msi.plans} planes activos`}
               </Text>
             </View>
-            <Text className="text-base font-bold text-ink">{formatAmount(msi.pending)}</Text>
+            <Text className="text-base font-bold tabular-nums text-ink">
+              {formatAmount(msi.pending)}
+            </Text>
           </View>
         ) : null}
       </HomeCard>
