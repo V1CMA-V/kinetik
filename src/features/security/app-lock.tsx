@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Modal, Platform, Text, View } from 'react-native';
+import { AppState, Modal, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LogoMark } from '@/components/logo-mark';
+import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { authenticate, isAuthenticating } from '@/features/security/biometrics';
 import { useAuthStore } from '@/stores/auth-store';
@@ -109,14 +111,12 @@ export function AppLock() {
         // Back button must not dismiss the lock.
       }}
     >
-      <SafeAreaView className="flex-1 bg-white px-6 dark:bg-neutral-950">
+      <SafeAreaView className="flex-1 bg-surface px-6">
         <View className="flex-1 items-center justify-center gap-3">
-          <View className="h-16 w-16 items-center justify-center rounded-2xl bg-brand-500">
-            <Text className="text-3xl font-bold text-white">K</Text>
-          </View>
-          <Text className="text-3xl font-bold text-neutral-900 dark:text-white">Kinetik</Text>
+          <LogoMark size={64} />
+          <Text className="font-display text-3xl font-bold text-ink">Kinetik</Text>
           {locked ? (
-            <Text className="text-center text-base text-neutral-500">
+            <Text className="text-center text-base text-ink-muted">
               {unavailable
                 ? 'La biometría ya no está disponible en este teléfono. Cierra sesión y entra con tu contraseña.'
                 : 'Tu información está bloqueada. Desbloquea para continuar.'}

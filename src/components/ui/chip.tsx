@@ -1,4 +1,6 @@
-import { Pressable, Text, type PressableProps } from 'react-native';
+import { Pressable, type PressableProps } from 'react-native';
+
+import { Text } from '@/components/ui/text';
 
 type ChipProps = PressableProps & {
   label: string;
@@ -11,17 +13,11 @@ export function Chip({ label, selected = false, ...props }: ChipProps) {
       accessibilityRole="radio"
       accessibilityState={{ selected }}
       className={`rounded-full border px-4 py-2 active:opacity-80 ${
-        selected
-          ? 'border-brand-500 bg-brand-500'
-          : 'border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
+        selected ? 'border-accent bg-accent' : 'border-outline bg-card'
       }`}
       {...props}
     >
-      <Text
-        className={`text-sm font-medium ${
-          selected ? 'text-white' : 'text-neutral-900 dark:text-neutral-100'
-        }`}
-      >
+      <Text className={`text-sm font-medium ${selected ? 'text-on-accent' : 'text-ink'}`}>
         {label}
       </Text>
     </Pressable>

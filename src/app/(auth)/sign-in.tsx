@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
+import { LogoMark } from '@/components/logo-mark';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,8 +38,9 @@ export default function SignInScreen() {
     <Screen>
       <FormScrollView centered contentContainerStyle={{ gap: 32 }}>
         <View className="gap-2">
-          <Text className="text-4xl font-bold text-neutral-900 dark:text-white">Kinetik</Text>
-          <Text className="text-base text-neutral-500">Inicia sesión para continuar</Text>
+          <LogoMark size={56} />
+          <Text className="mt-4 font-display text-4xl font-bold text-ink">Kinetik</Text>
+          <Text className="text-base text-ink-muted">Inicia sesión para continuar</Text>
         </View>
 
         <View className="gap-4">
@@ -74,11 +77,9 @@ export default function SignInScreen() {
               />
             )}
           />
-          {error ? <Text className="text-sm text-red-500">{error.message}</Text> : null}
+          {error ? <Text className="text-sm text-expense">{error.message}</Text> : null}
           {signUp.isSuccess ? (
-            <Text className="text-sm text-green-600">
-              Revisa tu correo para confirmar la cuenta.
-            </Text>
+            <Text className="text-sm text-income">Revisa tu correo para confirmar la cuenta.</Text>
           ) : null}
         </View>
 

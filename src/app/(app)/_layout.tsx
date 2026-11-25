@@ -1,14 +1,13 @@
 import { NativeTabs } from 'expo-router/native-tabs';
-import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 
 import { useReminderScheduler } from '@/features/notifications/use-reminder-scheduler';
 import { useProcessDueSubscriptions } from '@/features/subscriptions/api';
+import { useThemeColors } from '@/theme/colors';
 import { useWidgetSync } from '@/widgets/use-widget-sync';
 
 export default function AppLayout() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const colors = useThemeColors();
   const { mutate: processDueSubscriptions } = useProcessDueSubscriptions();
 
   // Register subscription charges that came due since the last time the app was opened.
@@ -24,9 +23,13 @@ export default function AppLayout() {
 
   return (
     <NativeTabs
-      backgroundColor={isDark ? '#0A0A0A' : '#FFFFFF'}
-      indicatorColor={isDark ? '#262626' : '#D9EAFF'}
-      labelStyle={{ selected: { color: isDark ? '#FFFFFF' : '#1258A8' } }}
+      backgroundColor={colors.card}
+      indicatorColor={colors['accent-soft']}
+      iconColor={{ default: colors['ink-muted'], selected: colors['accent-ink'] }}
+      labelStyle={{
+        default: { color: colors['ink-muted'], fontFamily: 'Inter' },
+        selected: { color: colors['accent-ink'], fontFamily: 'Inter' },
+      }}
     >
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Inicio</NativeTabs.Trigger.Label>

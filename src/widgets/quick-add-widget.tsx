@@ -1,20 +1,37 @@
+// The React Compiler would add memo hooks to these components, but widgets are
+// rendered as plain functions outside React (Invalid Hook Call), so opt out.
+'use no memo';
+
 import { FlexWidget, TextWidget, type WidgetInfo } from 'react-native-android-widget';
 
 import { formatMoney } from '@/lib/format';
+import paletteModule from '@/theme/palette';
 
 import { currentMonthKey, readWidgetSnapshot, type WidgetSnapshot } from './snapshot';
 
 // Widgets are rendered to Android RemoteViews: only the library's *Widget
 // primitives work here (no RN views, no NativeWind, no hooks).
 
-const BRAND = '#208AEF';
+const { palette } = paletteModule;
+
+// Design system colors (same source as the app's Tailwind tokens).
+const ACCENT = palette.light.accent; // orange fill, identical in both themes
+const ON_ACCENT = palette.light['on-accent'] as Hex;
 const APP_URI = 'kinetik://';
 const HIDDEN_AMOUNT = '$ ••••';
 
-type Theme = { background: `#${string}`; text: `#${string}`; muted: `#${string}` };
+type Hex = `#${string}`;
+type Theme = { background: Hex; text: Hex; muted: Hex; accentInk: Hex };
 
-const LIGHT: Theme = { background: '#FFFFFF', text: '#111827', muted: '#6B7280' };
-const DARK: Theme = { background: '#1C1C1E', text: '#F3F4F6', muted: '#9CA3AF' };
+const widgetTheme = (t: 'light' | 'dark'): Theme => ({
+  background: palette[t].card as Hex,
+  text: palette[t].ink as Hex,
+  muted: palette[t]['ink-muted'] as Hex,
+  accentInk: palette[t]['accent-ink'] as Hex,
+});
+
+const LIGHT = widgetTheme('light');
+const DARK = widgetTheme('dark');
 
 function summaryText(snapshot: WidgetSnapshot | null) {
   if (!snapshot || snapshot.monthKey !== currentMonthKey()) return 'Abre Kinetik para actualizar';
@@ -31,7 +48,7 @@ function ActionButton({ label, kind, compact }: { label: string; kind: string; c
       style={{
         flex: 1,
         height: 'match_parent',
-        backgroundColor: BRAND,
+        backgroundColor: ACCENT as Hex,
         borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
@@ -39,7 +56,7 @@ function ActionButton({ label, kind, compact }: { label: string; kind: string; c
     >
       <TextWidget
         text={label}
-        style={{ fontSize: compact ? 14 : 16, fontWeight: 'bold', color: '#FFFFFF' }}
+        style={{ fontSize: compact ? 14 : 16, fontWeight: 'bold', color: ON_ACCENT }}
       />
     </FlexWidget>
   );
@@ -66,7 +83,10 @@ function QuickAddWidget({ theme, height }: { theme: Theme; height: number }) {
     >
       {compact ? null : (
         <FlexWidget style={{ width: 'match_parent', flexDirection: 'column' }}>
-          <TextWidget text="Kinetik" style={{ fontSize: 12, fontWeight: 'bold', color: BRAND }} />
+          <TextWidget
+            text="Kinetik"
+            style={{ fontSize: 12, fontWeight: 'bold', color: theme.accentInk }}
+          />
           <TextWidget
             text={summary}
             maxLines={1}
