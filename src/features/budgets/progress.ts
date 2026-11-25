@@ -64,7 +64,7 @@ export function budgetStatus(ratio: number): BudgetStatus {
 }
 
 /** Amount of `t` that lands in the month `[start, end]` (0 if none). */
-function amountInMonth(t: BudgetExpense, start: string, end: string) {
+export function amountInMonth(t: BudgetExpense, start: string, end: string) {
   if (!t.installment_months) {
     return t.occurred_on >= start && t.occurred_on <= end ? t.amount : 0;
   }
@@ -143,5 +143,42 @@ export function computeBudgetProgress(
       status: budgetStatus(totalRatio),
     },
     unbudgetedSpent: round2(unbudgetedSpent),
+  };
+}
+
+export type MonthSpending = {
+  total: number;
+  /** Part of `total` that comes from MSI installments. */
+  installments: number;
+  /** Highest spending first. */
+  byCategory: { category: string; amount: number }[];
+};
+
+/**
+ * Total spending of the month that contains `month`, by category. Same rules as
+ * the budgets: MSI purchases count only the installment billed in the month.
+ */
+export function computeMonthSpending(month: string, expenses: BudgetExpense[]): MonthSpending {
+  const { start, end } = monthRange(month);
+
+  const byCategory = new Map<string, number>();
+  let total = 0;
+  let installments = 0;
+  for (const t of expenses) {
+    if (t.kind !== 'expense') continue;
+    const amount = amountInMonth(t, start, end);
+    if (!amount) continue;
+    const category = t.category || FALLBACK_CATEGORY;
+    byCategory.set(category, (byCategory.get(category) ?? 0) + amount);
+    total += amount;
+    if (t.installment_months) installments += amount;
+  }
+
+  return {
+    total: round2(total),
+    installments: round2(installments),
+    byCategory: [...byCategory]
+      .map(([category, amount]) => ({ category, amount: round2(amount) }))
+      .sort((a, b) => b.amount - a.amount),
   };
 }

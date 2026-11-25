@@ -6,7 +6,7 @@ import { addMonths, monthRange } from '@/lib/date';
 import { supabase } from '@/lib/supabase';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database';
 
-import { computeBudgetProgress } from './progress';
+import { computeBudgetProgress, computeMonthSpending } from './progress';
 
 export type Budget = Tables<'budgets'>;
 
@@ -73,6 +73,25 @@ function useBudgetExpenses(start: string, end: string) {
       return data;
     },
   });
+}
+
+/** Spending of the month that contains `month` by category (MSI by installment). */
+export function useMonthSpending(month: string) {
+  const { start, end } = monthRange(month);
+  const expenses = useBudgetExpenses(start, end);
+
+  const data = useMemo(
+    () => (expenses.data ? computeMonthSpending(start, expenses.data) : undefined),
+    [start, expenses.data],
+  );
+
+  return {
+    data,
+    isPending: expenses.isPending,
+    error: expenses.error,
+    isRefetching: expenses.isRefetching,
+    refetch: expenses.refetch,
+  };
 }
 
 /** Spending vs. budget per category for the month that contains `month`. */
