@@ -9,6 +9,9 @@ export const REMINDER_DAYS_OPTIONS = [1, 2, 3, 5, 7] as const;
 export type ReminderDays = (typeof REMINDER_DAYS_OPTIONS)[number];
 
 type SettingsState = {
+  /** The welcome screens were shown (or skipped) once; never show them again. */
+  hasSeenOnboarding: boolean;
+  completeOnboarding: () => void;
   colorScheme: ColorSchemePreference;
   setColorScheme: (value: ColorSchemePreference) => void;
   /** Mask money amounts ("$ ••••") across the app. */
@@ -40,6 +43,8 @@ type SettingsState = {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
+      hasSeenOnboarding: false,
+      completeOnboarding: () => set({ hasSeenOnboarding: true }),
       colorScheme: 'system',
       setColorScheme: (colorScheme) => set({ colorScheme }),
       hideAmounts: false,

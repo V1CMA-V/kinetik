@@ -21,6 +21,8 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
   const preference = useSettingsStore((s) => s.colorScheme);
+  const hasSeenOnboarding = useSettingsStore((s) => s.hasSeenOnboarding);
+  const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const session = useAuthStore((s) => s.session);
   const isLoading = useAuthStore((s) => s.isLoading);
   const init = useAuthStore((s) => s.init);
@@ -45,6 +47,11 @@ export default function RootLayout() {
 
   useEffect(() => init(), [init]);
 
+  // People who already have a session know the app: don't show them the welcome screens.
+  useEffect(() => {
+    if (session && !hasSeenOnboarding) completeOnboarding();
+  }, [session, hasSeenOnboarding, completeOnboarding]);
+
   useEffect(() => {
     nwColorScheme.set(preference);
   }, [preference]);
@@ -63,7 +70,10 @@ export default function RootLayout() {
           <ThemeProvider value={navigationTheme}>
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Protected guard={!!session} redirectTo="/sign-in">
+              <Stack.Protected
+                guard={!!session}
+                redirectTo={hasSeenOnboarding ? '/sign-in' : '/welcome'}
+              >
                 <Stack.Screen name="(app)" />
               </Stack.Protected>
               <Stack.Protected guard={!session} redirectTo="/">
