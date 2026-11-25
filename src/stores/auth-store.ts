@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 import { cancelAllReminders } from '@/features/notifications/reminders';
 import { clearWidgetSnapshot } from '@/widgets/update';
+import { signOutFromGoogle } from '@/features/auth/google';
 import { supabase } from '@/lib/supabase';
 
 type AuthState = {
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await cancelAllReminders();
     clearWidgetSnapshot();
+    await signOutFromGoogle();
     await supabase.auth.signOut();
   },
 }));
