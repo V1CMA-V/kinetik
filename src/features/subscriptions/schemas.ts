@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Constants } from '@/types/database';
+import { Constants, type Tables } from '@/types/database';
 
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
 
@@ -26,3 +26,16 @@ export const subscriptionSchema = z
 
 export type SubscriptionFormInput = z.input<typeof subscriptionSchema>;
 export type SubscriptionFormOutput = z.output<typeof subscriptionSchema>;
+
+/** Maps a stored subscription back to form values (the date shown is the pending charge). */
+export function subscriptionToFormValues(
+  subscription: Tables<'subscriptions'>,
+): SubscriptionFormInput {
+  return {
+    name: subscription.name,
+    amount: subscription.amount.toFixed(2),
+    frequency: subscription.frequency,
+    accountId: subscription.account_id,
+    nextChargeOn: subscription.next_charge_on,
+  };
+}

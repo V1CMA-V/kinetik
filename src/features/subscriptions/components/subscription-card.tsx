@@ -8,6 +8,7 @@ import { FREQUENCIES } from '../constants';
 
 type Props = {
   subscription: Subscription;
+  onPress?: () => void;
   onLongPress?: () => void;
 };
 
@@ -19,7 +20,7 @@ function nextChargeLabel(iso: string) {
   return day === 'Hoy' ? 'Hoy' : dateFormatter.format(parseISODate(iso));
 }
 
-export function SubscriptionCard({ subscription: s, onLongPress }: Props) {
+export function SubscriptionCard({ subscription: s, onPress, onLongPress }: Props) {
   const frequency = FREQUENCIES[s.frequency];
   const account = s.account
     ? [s.account.institution, s.account.name].filter(Boolean).join(' · ')
@@ -27,6 +28,7 @@ export function SubscriptionCard({ subscription: s, onLongPress }: Props) {
 
   return (
     <Pressable
+      onPress={onPress}
       onLongPress={onLongPress}
       className={`flex-row items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 active:opacity-80 dark:border-neutral-800 dark:bg-neutral-900 ${
         s.is_active ? '' : 'opacity-50'

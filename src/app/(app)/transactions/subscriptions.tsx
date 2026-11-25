@@ -95,7 +95,16 @@ export default function SubscriptionsScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <SubscriptionCard subscription={item} onLongPress={() => showOptions(item)} />
+          <SubscriptionCard
+            subscription={item}
+            onPress={() =>
+              router.push({
+                pathname: '/transactions/subscription/[id]',
+                params: { id: item.id },
+              })
+            }
+            onLongPress={() => showOptions(item)}
+          />
         )}
         ListEmptyComponent={
           subscriptions.isPending ? (
@@ -112,7 +121,7 @@ export default function SubscriptionsScreen() {
         ListFooterComponent={
           subscriptions.data?.length ? (
             <Text className="mt-3 text-center text-xs text-neutral-500">
-              Mantén presionada una suscripción para pausarla o eliminarla
+              Toca para editar · mantén presionada para pausar o eliminar
             </Text>
           ) : undefined
         }
