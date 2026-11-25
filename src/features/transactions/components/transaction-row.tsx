@@ -1,7 +1,10 @@
 import { Pressable, View } from 'react-native';
 
+import { groupedRowClass } from '@/components/ui/grouped';
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { useThemeColors } from '@/theme/colors';
 
 import type { Transaction } from '../api';
 import { TRANSACTION_KINDS } from '../constants';
@@ -11,6 +14,8 @@ type Props = {
   transaction: Transaction;
   onPress?: () => void;
   onLongPress?: () => void;
+  /** Position inside an inset grouped list; omit for a standalone card. */
+  group?: { index: number; count: number };
   /** Shows transfers as money in (+) or out (−) of this account. */
   accountId?: string;
 };
@@ -18,7 +23,7 @@ type Props = {
 const accountLabel = (account: { name: string; institution: string | null } | null) =>
   account ? [account.institution, account.name].filter(Boolean).join(' · ') : '—';
 
-export function TransactionRow({ transaction: t, onPress, onLongPress, accountId }: Props) {
+export function TransactionRow({ transaction: t, onPress, onLongPress, accountId, group }: Props) {
   const formatAmount = useFormatMoney();
   const title =
     t.description ||
@@ -49,8 +54,20 @@ export function TransactionRow({ transaction: t, onPress, onLongPress, accountId
         ? `-${formatAmount(t.amount)}`
         : formatAmount(t.amount);
 
+  const colors = useThemeColors();
   const amountColor =
-    t.kind === 'income' ? 'text-income' : t.kind === 'expense' ? 'text-ink' : 'text-accent-ink';
+    direction === 'in' ? 'text-income' : direction === 'out' ? 'text-expense' : 'text-ink';
+  // Arrow bubble: money in (↙, green), out (↗, red) or a neutral transfer (⇄).
+  const bubble =
+    direction === 'in'
+      ? ({ ios: 'arrow.down.left', android: 'south_west', color: colors.income } as const)
+      : direction === 'out'
+        ? ({ ios: 'arrow.up.right', android: 'north_east', color: colors.expense } as const)
+        : ({
+            ios: 'arrow.left.arrow.right',
+            android: 'swap_horiz',
+            color: colors['ink-muted'],
+          } as const);
 
   const msi = t.installment_months
     ? installmentProgress(t.amount, t.installment_months, t.occurred_on, t.account?.statement_day)
@@ -60,8 +77,19 @@ export function TransactionRow({ transaction: t, onPress, onLongPress, accountId
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      className="flex-row items-center gap-3 rounded-card border border-line bg-card px-4 py-3 active:opacity-80"
+      accessibilityRole="button"
+      className={`flex-row items-center gap-3 px-4 py-3 active:opacity-80 ${
+        group
+          ? groupedRowClass(group.index, group.count)
+          : 'rounded-card border border-line bg-card'
+      }`}
     >
+      <View
+        className="h-10 w-10 items-center justify-center rounded-full bg-sunken"
+        style={{ borderRadius: 20 }}
+      >
+        <Icon ios={bubble.ios} android={bubble.android} color={bubble.color} size={18} />
+      </View>
       <View className="flex-1 gap-0.5">
         <Text numberOfLines={1} className="text-base font-semibold text-ink">
           {title}
@@ -85,7 +113,7 @@ export function TransactionRow({ transaction: t, onPress, onLongPress, accountId
           </View>
         ) : null}
       </View>
-      <Text className={`text-base font-bold ${amountColor}`}>{amountText}</Text>
+      <Text className={`text-base font-bold tabular-nums ${amountColor}`}>{amountText}</Text>
     </Pressable>
   );
 }

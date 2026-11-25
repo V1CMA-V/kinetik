@@ -5,10 +5,11 @@ import { ActivityIndicator, Alert, FlatList, Pressable, View } from 'react-nativ
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
+import { MonthSwitcher } from '@/components/ui/month-switcher';
 import { useBudgetProgress, useDeleteBudget } from '@/features/budgets/api';
 import type { BudgetStatus, CategoryProgress } from '@/features/budgets/progress';
 import { useFormatMoney } from '@/hooks/use-format-money';
-import { addMonths, formatMonth, monthRange, today } from '@/lib/date';
+import { monthRange, today } from '@/lib/date';
 
 const BAR_CLASSES: Record<BudgetStatus, string> = {
   ok: 'bg-income',
@@ -19,7 +20,6 @@ const BAR_CLASSES: Record<BudgetStatus, string> = {
 export default function BudgetsScreen() {
   const formatAmount = useFormatMoney();
   const [month, setMonth] = useState(() => monthRange(today()).start);
-  const isCurrentMonth = month === monthRange(today()).start;
 
   const progress = useBudgetProgress(month);
   const remove = useDeleteBudget();
@@ -54,15 +54,7 @@ export default function BudgetsScreen() {
               </Text>
             </View>
 
-            <View className="flex-row items-center justify-between">
-              <MonthButton label="‹" onPress={() => setMonth(addMonths(month, -1))} />
-              <Text className="text-lg font-semibold text-ink">{formatMonth(month)}</Text>
-              <MonthButton
-                label="›"
-                disabled={isCurrentMonth}
-                onPress={() => setMonth(addMonths(month, 1))}
-              />
-            </View>
+            <MonthSwitcher month={month} onChange={setMonth} />
 
             {totals && totals.budget > 0 ? (
               <View className="gap-3 rounded-card bg-accent p-5">
@@ -196,27 +188,5 @@ function ProgressBar({
         style={{ width: `${percent}%` }}
       />
     </View>
-  );
-}
-
-function MonthButton({
-  label,
-  onPress,
-  disabled,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label === '‹' ? 'Mes anterior' : 'Mes siguiente'}
-      onPress={onPress}
-      disabled={disabled}
-      className="h-10 w-10 items-center justify-center rounded-full bg-sunken active:opacity-70 disabled:opacity-30"
-    >
-      <Text className="text-xl text-ink">{label}</Text>
-    </Pressable>
   );
 }

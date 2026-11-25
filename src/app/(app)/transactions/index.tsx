@@ -4,7 +4,9 @@ import { ActivityIndicator, Alert, Pressable, SectionList, View } from 'react-na
 
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
-import { Button } from '@/components/ui/button';
+import { Fab } from '@/components/ui/fab';
+import { Icon } from '@/components/ui/icon';
+import { MonthSwitcher } from '@/components/ui/month-switcher';
 import {
   type Transaction,
   useDeleteTransaction,
@@ -12,12 +14,12 @@ import {
 } from '@/features/transactions/api';
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
 import { useFormatMoney } from '@/hooks/use-format-money';
-import { addMonths, formatDay, formatMonth, monthRange, today } from '@/lib/date';
+import { formatDay, formatMonth, monthRange, today } from '@/lib/date';
+import { useThemeColors } from '@/theme/colors';
 
 export default function TransactionsScreen() {
   const formatAmount = useFormatMoney();
   const [month, setMonth] = useState(() => monthRange(today()).start);
-  const isCurrentMonth = month === monthRange(today()).start;
 
   const transactions = useMonthTransactions(month);
   const remove = useDeleteTransaction();
@@ -49,7 +51,7 @@ export default function TransactionsScreen() {
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="pb-8"
+        contentContainerClassName="pb-24"
         stickySectionHeadersEnabled={false}
         refreshing={transactions.isRefetching}
         onRefresh={transactions.refetch}
@@ -57,61 +59,63 @@ export default function TransactionsScreen() {
           <View className="mb-2 gap-5">
             <Text className="font-display text-3xl font-bold text-ink">Movimientos</Text>
 
-            <View className="flex-row items-center justify-between">
-              <MonthButton label="‹" onPress={() => setMonth(addMonths(month, -1))} />
-              <Text className="text-lg font-semibold text-ink">{formatMonth(month)}</Text>
-              <MonthButton
-                label="›"
-                disabled={isCurrentMonth}
-                onPress={() => setMonth(addMonths(month, 1))}
+            <View className="flex-row gap-2">
+              <ShortcutChip
+                label="Suscripciones"
+                ios="repeat"
+                android="autorenew"
+                onPress={() => router.push('/transactions/subscriptions')}
+              />
+              <ShortcutChip
+                label="Presupuestos"
+                ios="chart.pie"
+                android="pie_chart"
+                onPress={() => router.push('/transactions/budgets')}
               />
             </View>
 
-            <View className="flex-row gap-3">
-              <SummaryCard label="Ingresos" value={income} className="text-income" />
-              <SummaryCard label="Gastos" value={expense} className="text-expense" />
-            </View>
-            <View className="flex-row items-center justify-between rounded-card bg-accent px-5 py-4">
-              <Text className="text-sm text-on-accent-muted">Balance del mes</Text>
-              <Text className="font-display text-xl font-bold text-on-accent">
-                {formatAmount(balance)}
-              </Text>
-            </View>
+            <MonthSwitcher month={month} onChange={setMonth} />
 
-            <View className="gap-3">
-              <Button title="Agregar movimiento" onPress={() => router.push('/transactions/new')} />
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Button
-                    title="Suscripciones"
-                    variant="secondary"
-                    onPress={() => router.push('/transactions/subscriptions')}
-                  />
-                </View>
-                <View className="flex-1">
-                  <Button
-                    title="Presupuestos"
-                    variant="secondary"
-                    onPress={() => router.push('/transactions/budgets')}
-                  />
-                </View>
+            <View className="gap-4 rounded-card border border-line bg-card p-4">
+              <View className="flex-row">
+                <SummaryValue
+                  label="Ingresos"
+                  value={formatAmount(income)}
+                  className="text-income"
+                />
+                <View className="w-px bg-line" />
+                <SummaryValue
+                  label="Gastos"
+                  value={formatAmount(expense)}
+                  className="text-expense"
+                  align="end"
+                />
+              </View>
+              <View className="flex-row items-baseline justify-between border-t border-line pt-3">
+                <Text className="text-sm font-medium text-ink-muted">Balance del mes</Text>
+                <Text
+                  className={`font-display text-xl font-bold tabular-nums ${
+                    balance < 0 ? 'text-expense' : 'text-ink'
+                  }`}
+                >
+                  {formatAmount(balance)}
+                </Text>
               </View>
             </View>
           </View>
         }
         renderSectionHeader={({ section }) => (
-          <Text className="mb-2 mt-5 text-sm font-semibold text-ink-muted">{section.title}</Text>
+          <Text className="mb-2 mt-6 px-1 text-sm font-semibold text-ink-muted">
+            {section.title}
+          </Text>
         )}
-        renderItem={({ item }) => (
-          <View className="mb-2">
-            <TransactionRow
-              transaction={item}
-              onPress={() =>
-                router.push({ pathname: '/transactions/[id]', params: { id: item.id } })
-              }
-              onLongPress={() => confirmDelete(item)}
-            />
-          </View>
+        renderItem={({ item, index, section }) => (
+          <TransactionRow
+            transaction={item}
+            group={{ index, count: section.data.length }}
+            onPress={() => router.push({ pathname: '/transactions/[id]', params: { id: item.id } })}
+            onLongPress={() => confirmDelete(item)}
+          />
         )}
         ListEmptyComponent={
           transactions.isPending ? (
@@ -120,58 +124,63 @@ export default function TransactionsScreen() {
             <Text className="mt-8 text-center text-expense">{transactions.error.message}</Text>
           ) : (
             <Text className="mt-8 text-center text-ink-muted">
-              No hay movimientos en {formatMonth(month).toLowerCase()}.
+              No hay movimientos en {formatMonth(month).toLowerCase()}. Registra uno con el botón
+              Movimiento.
             </Text>
           )
         }
         ListFooterComponent={
           sections.length ? (
-            <Text className="mt-3 text-center text-xs text-ink-muted">
-              Toca para editar · mantén presionado para eliminar
+            <Text className="mt-4 text-center text-xs text-ink-muted">
+              Toca un movimiento para editarlo o mantenlo presionado para eliminarlo.
             </Text>
           ) : undefined
         }
       />
+      <Fab label="Movimiento" href="/transactions/new" />
     </Screen>
   );
 }
 
-function SummaryCard({
+function SummaryValue({
   label,
   value,
   className,
+  align = 'start',
 }: {
   label: string;
-  value: number;
+  value: string;
   className: string;
+  align?: 'start' | 'end';
 }) {
-  const formatAmount = useFormatMoney();
   return (
-    <View className="flex-1 gap-1 rounded-card border border-line bg-card p-4">
+    <View className={`flex-1 gap-0.5 ${align === 'end' ? 'items-end' : ''}`}>
       <Text className="text-xs text-ink-muted">{label}</Text>
-      <Text className={`text-lg font-bold ${className}`}>{formatAmount(value)}</Text>
+      <Text className={`text-lg font-bold tabular-nums ${className}`}>{value}</Text>
     </View>
   );
 }
 
-function MonthButton({
+function ShortcutChip({
   label,
+  ios,
+  android,
   onPress,
-  disabled,
 }: {
   label: string;
+  ios: 'repeat' | 'chart.pie';
+  android: 'autorenew' | 'pie_chart';
   onPress: () => void;
-  disabled?: boolean;
 }) {
+  const colors = useThemeColors();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label === '‹' ? 'Mes anterior' : 'Mes siguiente'}
       onPress={onPress}
-      disabled={disabled}
-      className="h-10 w-10 items-center justify-center rounded-full bg-sunken active:opacity-70 disabled:opacity-30"
+      className="h-10 flex-row items-center gap-1.5 rounded-full bg-sunken px-4 active:opacity-70"
     >
-      <Text className="text-xl text-ink">{label}</Text>
+      <Icon ios={ios} android={android} color={colors.ink} size={18} />
+      <Text className="text-sm font-semibold text-ink">{label}</Text>
     </Pressable>
   );
 }
