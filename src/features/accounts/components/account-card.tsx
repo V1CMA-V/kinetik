@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatShortDate } from '@/lib/date';
-import { formatMoney } from '@/lib/format';
 
 import type { Account } from '../api';
 import { ACCOUNT_TYPES } from '../constants';
@@ -19,6 +19,7 @@ type Props = {
 };
 
 export function AccountCard({ account, statement, onPress, onLongPress }: Props) {
+  const formatAmount = useFormatMoney();
   const isCredit = account.type === 'credit_card';
   const debt = Math.abs(Math.min(account.balance, 0));
   const available = isCredit && account.credit_limit != null ? account.credit_limit - debt : null;
@@ -48,14 +49,14 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
           <View>
             <Text className="text-xs text-neutral-500">Deuda</Text>
             <Text className="text-xl font-bold text-red-500">
-              {formatMoney(debt, account.currency)}
+              {formatAmount(debt, account.currency)}
             </Text>
           </View>
           {available != null ? (
             <View className="items-end">
               <Text className="text-xs text-neutral-500">Disponible</Text>
               <Text className="text-base font-semibold text-neutral-900 dark:text-white">
-                {formatMoney(available, account.currency)}
+                {formatAmount(available, account.currency)}
               </Text>
             </View>
           ) : null}
@@ -64,7 +65,7 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
         <View>
           <Text className="text-xs text-neutral-500">Saldo</Text>
           <Text className="text-xl font-bold text-neutral-900 dark:text-white">
-            {formatMoney(account.balance, account.currency)}
+            {formatAmount(account.balance, account.currency)}
           </Text>
         </View>
       )}
@@ -89,6 +90,7 @@ function StatementSummary({
   statement: CreditCardStatement;
   currency: string;
 }) {
+  const formatAmount = useFormatMoney();
   const isOverdue = !s.isPaid && s.daysUntilDue < 0;
   const isUrgent = !s.isPaid && s.daysUntilDue <= URGENT_DAYS;
 
@@ -97,7 +99,7 @@ function StatementSummary({
       ? 'Sin pago pendiente'
       : s.isPaid
         ? 'Pagado ✓'
-        : `${isOverdue ? 'Venció el' : 'Pagar antes del'} ${formatShortDate(s.dueDate)}: ${formatMoney(
+        : `${isOverdue ? 'Venció el' : 'Pagar antes del'} ${formatShortDate(s.dueDate)}: ${formatAmount(
             s.remainingToPay,
             currency,
           )}`;
@@ -123,7 +125,7 @@ function StatementSummary({
       </Text>
       {s.msiPending > 0 ? (
         <Text className="text-xs text-neutral-500">
-          MSI pendientes: {formatMoney(s.msiPending, currency)}
+          MSI pendientes: {formatAmount(s.msiPending, currency)}
         </Text>
       ) : null}
     </View>

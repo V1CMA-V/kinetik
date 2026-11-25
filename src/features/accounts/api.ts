@@ -8,6 +8,7 @@ export type Account = Tables<'accounts'>;
 export const accountKeys = {
   all: ['accounts'] as const,
   active: () => [...accountKeys.all, 'active'] as const,
+  archived: () => [...accountKeys.all, 'archived'] as const,
   detail: (id: string) => [...accountKeys.all, 'detail', id] as const,
   /** Credit-card transactions behind the statement summaries (money mutations refresh `all`). */
   cardTransactions: (cardIds: string[], since: string) =>
@@ -79,6 +80,54 @@ export function useArchiveAccount() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('accounts').update({ is_active: false }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: accountKeys.all }),
+  });
+}
+
+/** Archived accounts, most recently archived first. */
+export function useArchivedAccounts() {
+  return useQuery({
+    queryKey: accountKeys.archived(),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('*')
+        .eq('is_active', false)
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+/** Brings an archived account back to the active list. */
+export function useRestoreAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('accounts').update({ is_active: true }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: accountKeys.all }),
+  });
+}
+
+/** Permanently deletes an account; only possible when it has no transactions or subscriptions. */
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('accounts').delete().eq('id', id);
+      // Transactions and subscriptions reference accounts with `on delete restrict`.
+      if (error?.code === '23503') {
+        throw new Error(
+          'Esta cuenta tiene movimientos o suscripciones; solo puedes mantenerla archivada.',
+        );
+      }
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: accountKeys.all }),
