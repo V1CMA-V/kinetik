@@ -132,7 +132,14 @@
             }
           ]
         }
-      ]
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.542621400527-04jmbt2frik6kpq9pruv0achg9kps0jv"
+        }
+      ],
+      "./plugins/with-cmake-version"
     ],
     "experiments": {
       "typedRoutes": true,
