@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import {
@@ -11,7 +12,7 @@ import {
 } from '@/features/accounts/api';
 import { ArchivedAccountRow } from '@/features/accounts/components/archived-account-row';
 
-const showError = (title: string) => (error: Error) => Alert.alert(title, error.message);
+const showError = (title: string) => (error: Error) => alert(title, error.message);
 
 export default function ArchivedAccountsScreen() {
   const archived = useArchivedAccounts();
@@ -19,7 +20,7 @@ export default function ArchivedAccountsScreen() {
   const remove = useDeleteAccount();
 
   const confirmDelete = (account: Account) =>
-    Alert.alert(
+    alert(
       'Eliminar cuenta',
       `"${account.name}" se eliminará de forma permanente. Esta acción no se puede deshacer.`,
       [
@@ -34,7 +35,7 @@ export default function ArchivedAccountsScreen() {
     );
 
   const showOptions = (account: Account) =>
-    Alert.alert(account.name, 'Restáurala para volver a usarla en Cuentas y Movimientos.', [
+    alert(account.name, 'Restáurala para volver a usarla en Cuentas y Movimientos.', [
       {
         text: 'Restaurar',
         onPress: () =>

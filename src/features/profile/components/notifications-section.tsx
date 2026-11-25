@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, Linking, View } from 'react-native';
+import { Linking, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Chip } from '@/components/ui/chip';
 import {
@@ -13,7 +14,7 @@ import { REMINDER_DAYS_OPTIONS, useSettingsStore } from '@/stores/settings-store
 import { Section, SwitchRow } from './settings';
 
 function showPermissionDeniedAlert() {
-  Alert.alert(
+  alert(
     'Notificaciones desactivadas',
     'Para recibir recordatorios, permite las notificaciones de Kinetik en los ajustes de tu teléfono.',
     [

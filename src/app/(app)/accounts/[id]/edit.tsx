@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ export default function EditAccountScreen() {
   const current = account.data;
 
   const confirmArchive = () => {
-    Alert.alert('Archivar cuenta', `¿Quieres archivar "${current.name}"?`, [
+    alert('Archivar cuenta', `¿Quieres archivar "${current.name}"?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Archivar',

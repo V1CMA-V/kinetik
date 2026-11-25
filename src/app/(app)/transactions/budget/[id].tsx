@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,7 @@ export default function EditBudgetScreen() {
   const current = budget.data;
 
   const confirmDelete = () => {
-    Alert.alert('Eliminar presupuesto', `Dejarás de ver el límite de ${current.category}.`, [
+    alert('Eliminar presupuesto', `Dejarás de ver el límite de ${current.category}.`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar',

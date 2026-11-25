@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, SectionList, View } from 'react-native';
+import { ActivityIndicator, Pressable, SectionList, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Fab } from '@/components/ui/fab';
@@ -38,7 +39,7 @@ export default function TransactionsScreen() {
   }, [transactions.data]);
 
   const confirmDelete = (t: Transaction) => {
-    Alert.alert('Eliminar movimiento', 'El saldo de las cuentas se ajustará automáticamente.', [
+    alert('Eliminar movimiento', 'El saldo de las cuentas se ajustará automáticamente.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => remove.mutate(t.id) },
     ]);

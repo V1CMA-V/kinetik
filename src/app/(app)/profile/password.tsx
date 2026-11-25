@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
@@ -35,7 +36,7 @@ export default function ChangePasswordScreen() {
   const submit = handleSubmit((values) =>
     changePassword.mutate(values, {
       onSuccess: () => {
-        Alert.alert('Contraseña actualizada', 'Usa tu nueva contraseña la próxima vez que entres.');
+        alert('Contraseña actualizada', 'Usa tu nueva contraseña la próxima vez que entres.');
         router.back();
       },
       onError: (error) => {

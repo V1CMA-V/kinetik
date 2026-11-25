@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -41,7 +42,7 @@ export default function EditTransactionScreen() {
   const current = transaction.data;
 
   const confirmDelete = () => {
-    Alert.alert('Eliminar movimiento', 'El saldo de las cuentas se ajustará automáticamente.', [
+    alert('Eliminar movimiento', 'El saldo de las cuentas se ajustará automáticamente.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar',

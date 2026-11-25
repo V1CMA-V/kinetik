@@ -3,8 +3,9 @@ import { useMutation } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -169,13 +170,13 @@ function CodeStep({
 
       const updated = await supabase.auth.updateUser({ password });
       if (updated.error) {
-        Alert.alert(
+        alert(
           'Entraste, pero no cambiamos tu contraseña',
           `${authErrorMessage(updated.error)} Puedes cambiarla en Perfil → Contraseña.`,
         );
         return;
       }
-      Alert.alert('Contraseña actualizada', 'Usa tu nueva contraseña la próxima vez que entres.');
+      alert('Contraseña actualizada', 'Usa tu nueva contraseña la próxima vez que entres.');
     },
     onError: (error) => setError('code', { message: authErrorMessage(error) }),
   });

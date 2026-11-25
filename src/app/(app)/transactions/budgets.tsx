@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ export default function BudgetsScreen() {
   const remove = useDeleteBudget();
 
   const confirmDelete = (c: CategoryProgress) => {
-    Alert.alert('Eliminar presupuesto', `Dejarás de ver el límite de ${c.category}.`, [
+    alert('Eliminar presupuesto', `Dejarás de ver el límite de ${c.category}.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => remove.mutate(c.id) },
     ]);

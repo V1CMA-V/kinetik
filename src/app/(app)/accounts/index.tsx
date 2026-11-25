@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, SectionList, View } from 'react-native';
+import { ActivityIndicator, Pressable, SectionList, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Icon } from '@/components/ui/icon';
@@ -60,7 +61,7 @@ export default function AccountsScreen() {
   }, [all, activeFilter]);
 
   const confirmArchive = (account: Account) => {
-    Alert.alert('Archivar cuenta', `¿Quieres archivar "${account.name}"?`, [
+    alert('Archivar cuenta', `¿Quieres archivar "${account.name}"?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Archivar', style: 'destructive', onPress: () => archive.mutate(account.id) },
     ]);

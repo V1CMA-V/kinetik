@@ -1,6 +1,7 @@
 import { type ComponentRef, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { useAccounts } from '@/features/accounts/api';
@@ -37,7 +38,7 @@ export default function ProfileScreen() {
   };
 
   const confirmSignOut = () => {
-    Alert.alert('Cerrar sesión', '¿Quieres cerrar sesión en este teléfono?', [
+    alert('Cerrar sesión', '¿Quieres cerrar sesión en este teléfono?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Cerrar sesión', style: 'destructive', onPress: signOut },
     ]);

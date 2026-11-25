@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -41,18 +42,14 @@ export default function EditSubscriptionScreen() {
   const current = subscription.data;
 
   const confirmDelete = () => {
-    Alert.alert(
-      'Eliminar suscripción',
-      'Los cargos que ya se registraron se quedan en Movimientos.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => remove.mutate(current.id, { onSuccess: () => router.back() }),
-        },
-      ],
-    );
+    alert('Eliminar suscripción', 'Los cargos que ya se registraron se quedan en Movimientos.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => remove.mutate(current.id, { onSuccess: () => router.back() }),
+      },
+    ]);
   };
 
   return (

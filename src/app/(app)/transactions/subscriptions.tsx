@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
 
+import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,7 @@ export default function SubscriptionsScreen() {
   );
 
   const showOptions = (s: Subscription) => {
-    Alert.alert(s.name, undefined, [
+    alert(s.name, undefined, [
       {
         text: s.is_active ? 'Pausar' : 'Reanudar',
         onPress: () => setActive.mutate({ id: s.id, isActive: !s.is_active }),
@@ -42,7 +43,7 @@ export default function SubscriptionsScreen() {
         text: 'Eliminar',
         style: 'destructive',
         onPress: () =>
-          Alert.alert(
+          alert(
             'Eliminar suscripción',
             'Los cargos que ya se registraron se quedan en Movimientos.',
             [
