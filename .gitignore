@@ -42,3 +42,8 @@ example
 # generated native folders
 /ios
 /android
+
+# AI agents / Claude Code (local only)
+.claude/
+.agents/
+skills-lock.json
