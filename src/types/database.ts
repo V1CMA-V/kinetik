@@ -19,6 +19,8 @@ export type Database = {
           institution: string | null;
           is_active: boolean;
           name: string;
+          payment_due_day: number | null;
+          statement_day: number | null;
           type: Database['public']['Enums']['account_type'];
           updated_at: string;
           user_id: string;
@@ -32,6 +34,8 @@ export type Database = {
           institution?: string | null;
           is_active?: boolean;
           name: string;
+          payment_due_day?: number | null;
+          statement_day?: number | null;
           type: Database['public']['Enums']['account_type'];
           updated_at?: string;
           user_id?: string;
@@ -45,7 +49,36 @@ export type Database = {
           institution?: string | null;
           is_active?: boolean;
           name?: string;
+          payment_due_day?: number | null;
+          statement_day?: number | null;
           type?: Database['public']['Enums']['account_type'];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      budgets: {
+        Row: {
+          amount: number;
+          category: string;
+          created_at: string;
+          id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          category: string;
+          created_at?: string;
+          id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          amount?: number;
+          category?: string;
+          created_at?: string;
+          id?: string;
           updated_at?: string;
           user_id?: string;
         };

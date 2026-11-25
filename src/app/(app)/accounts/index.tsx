@@ -8,10 +8,12 @@ import { type Account, useAccounts, useArchiveAccount } from '@/features/account
 import { AccountCard } from '@/features/accounts/components/account-card';
 import { DEFAULT_CURRENCY } from '@/features/accounts/constants';
 import { groupAccountsByInstitution } from '@/features/accounts/group';
+import { useCreditCardStatements } from '@/features/accounts/statements';
 import { formatMoney } from '@/lib/format';
 
 export default function AccountsScreen() {
   const accounts = useAccounts();
+  const statements = useCreditCardStatements();
   const archive = useArchiveAccount();
 
   const sections = useMemo(() => groupAccountsByInstitution(accounts.data ?? []), [accounts.data]);
@@ -32,7 +34,10 @@ export default function AccountsScreen() {
         contentContainerClassName="pb-8"
         stickySectionHeadersEnabled={false}
         refreshing={accounts.isRefetching}
-        onRefresh={accounts.refetch}
+        onRefresh={() => {
+          accounts.refetch();
+          statements.refetch();
+        }}
         ListHeaderComponent={
           <View className="mb-2 gap-6">
             <Text className="text-3xl font-bold text-neutral-900 dark:text-white">Cuentas</Text>
@@ -62,7 +67,12 @@ export default function AccountsScreen() {
         )}
         renderItem={({ item }) => (
           <View className="mb-3">
-            <AccountCard account={item} onLongPress={() => confirmArchive(item)} />
+            <AccountCard
+              account={item}
+              statement={statements.statements[item.id]}
+              onPress={() => router.push({ pathname: '/accounts/[id]', params: { id: item.id } })}
+              onLongPress={() => confirmArchive(item)}
+            />
           </View>
         )}
         ListEmptyComponent={
@@ -79,7 +89,7 @@ export default function AccountsScreen() {
         ListFooterComponent={
           accounts.data?.length ? (
             <Text className="mt-2 text-center text-xs text-neutral-500">
-              Mantén presionada una cuenta para archivarla
+              Toca una cuenta para editarla · mantén presionada para archivarla
             </Text>
           ) : undefined
         }
