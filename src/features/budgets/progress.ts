@@ -152,7 +152,30 @@ export type MonthSpending = {
   installments: number;
   /** Highest spending first. */
   byCategory: { category: string; amount: number }[];
+  /**
+   * Spending per day of the month (index 0 = day 1). MSI installments land on
+   * their cut date, or on day 1 when the card has no `statement_day`.
+   */
+  byDay: number[];
 };
+
+/** Day of the month (1-based) on which `t` adds to the month `[start, end]`, with its amount. */
+function dailyAmounts(t: BudgetExpense, start: string, end: string): [number, number][] {
+  const dayOf = (iso: string) => Number(iso.slice(8, 10));
+  if (!t.installment_months) {
+    return t.occurred_on >= start && t.occurred_on <= end ? [[dayOf(t.occurred_on), t.amount]] : [];
+  }
+  const statementDay = t.account?.statement_day;
+  if (statementDay) {
+    const amounts = installmentAmounts(t.amount, t.installment_months);
+    return installmentCuts(t.occurred_on, t.installment_months, statementDay).flatMap(
+      (cut, i): [number, number][] =>
+        cut >= start && cut <= end ? [[dayOf(cut), amounts[i]]] : [],
+    );
+  }
+  const amount = amountInMonth(t, start, end);
+  return amount ? [[1, amount]] : [];
+}
 
 /**
  * Total spending of the month that contains `month`, by category. Same rules as
@@ -162,6 +185,7 @@ export function computeMonthSpending(month: string, expenses: BudgetExpense[]): 
   const { start, end } = monthRange(month);
 
   const byCategory = new Map<string, number>();
+  const byDay = new Array<number>(Number(end.slice(8, 10))).fill(0);
   let total = 0;
   let installments = 0;
   for (const t of expenses) {
@@ -172,6 +196,7 @@ export function computeMonthSpending(month: string, expenses: BudgetExpense[]): 
     byCategory.set(category, (byCategory.get(category) ?? 0) + amount);
     total += amount;
     if (t.installment_months) installments += amount;
+    for (const [day, value] of dailyAmounts(t, start, end)) byDay[day - 1] += value;
   }
 
   return {
@@ -180,5 +205,6 @@ export function computeMonthSpending(month: string, expenses: BudgetExpense[]): 
     byCategory: [...byCategory]
       .map(([category, amount]) => ({ category, amount: round2(amount) }))
       .sort((a, b) => b.amount - a.amount),
+    byDay: byDay.map(round2),
   };
 }
