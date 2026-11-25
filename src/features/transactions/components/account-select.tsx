@@ -2,7 +2,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import type { Account } from '@/features/accounts/api';
 import { ACCOUNT_TYPES } from '@/features/accounts/constants';
-import { formatMoney } from '@/lib/format';
+import { useFormatMoney } from '@/hooks/use-format-money';
 
 type Props = {
   label: string;
@@ -14,6 +14,7 @@ type Props = {
 };
 
 export function AccountSelect({ label, accounts, value, onChange, error, excludeId }: Props) {
+  const formatAmount = useFormatMoney();
   const options = accounts.filter((a) => a.id !== excludeId);
 
   return (
@@ -48,8 +49,8 @@ export function AccountSelect({ label, accounts, value, onChange, error, exclude
               </Text>
               <Text className={`text-xs ${isCredit ? 'text-red-500' : 'text-neutral-500'}`}>
                 {isCredit
-                  ? `Deuda ${formatMoney(Math.abs(Math.min(account.balance, 0)), account.currency)}`
-                  : formatMoney(account.balance, account.currency)}
+                  ? `Deuda ${formatAmount(Math.abs(Math.min(account.balance, 0)), account.currency)}`
+                  : formatAmount(account.balance, account.currency)}
               </Text>
             </Pressable>
           );

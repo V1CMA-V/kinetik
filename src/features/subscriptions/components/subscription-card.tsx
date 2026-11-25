@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatDay, parseISODate } from '@/lib/date';
-import { formatMoney } from '@/lib/format';
 
 import type { Subscription } from '../api';
 import { FREQUENCIES } from '../constants';
@@ -21,6 +21,7 @@ function nextChargeLabel(iso: string) {
 }
 
 export function SubscriptionCard({ subscription: s, onPress, onLongPress }: Props) {
+  const formatAmount = useFormatMoney();
   const frequency = FREQUENCIES[s.frequency];
   const account = s.account
     ? [s.account.institution, s.account.name].filter(Boolean).join(' · ')
@@ -55,7 +56,7 @@ export function SubscriptionCard({ subscription: s, onPress, onLongPress }: Prop
       </View>
       <View className="items-end">
         <Text className="text-base font-bold text-neutral-900 dark:text-white">
-          {formatMoney(s.amount)}
+          {formatAmount(s.amount)}
         </Text>
         <Text className="text-xs text-neutral-500">/{frequency.short}</Text>
       </View>

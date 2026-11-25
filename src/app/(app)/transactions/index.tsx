@@ -10,10 +10,11 @@ import {
   useMonthTransactions,
 } from '@/features/transactions/api';
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
+import { useFormatMoney } from '@/hooks/use-format-money';
 import { addMonths, formatDay, formatMonth, monthRange, today } from '@/lib/date';
-import { formatMoney } from '@/lib/format';
 
 export default function TransactionsScreen() {
+  const formatAmount = useFormatMoney();
   const [month, setMonth] = useState(() => monthRange(today()).start);
   const isCurrentMonth = month === monthRange(today()).start;
 
@@ -73,7 +74,7 @@ export default function TransactionsScreen() {
             </View>
             <View className="flex-row items-center justify-between rounded-2xl bg-brand-500 px-5 py-4">
               <Text className="text-sm text-brand-50">Balance del mes</Text>
-              <Text className="text-xl font-bold text-white">{formatMoney(balance)}</Text>
+              <Text className="text-xl font-bold text-white">{formatAmount(balance)}</Text>
             </View>
 
             <View className="gap-3">
@@ -143,10 +144,11 @@ function SummaryCard({
   value: number;
   className: string;
 }) {
+  const formatAmount = useFormatMoney();
   return (
     <View className="flex-1 gap-1 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
       <Text className="text-xs text-neutral-500">{label}</Text>
-      <Text className={`text-lg font-bold ${className}`}>{formatMoney(value)}</Text>
+      <Text className={`text-lg font-bold ${className}`}>{formatAmount(value)}</Text>
     </View>
   );
 }

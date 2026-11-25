@@ -6,8 +6,8 @@ import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { useBudgetProgress, useDeleteBudget } from '@/features/budgets/api';
 import type { BudgetStatus, CategoryProgress } from '@/features/budgets/progress';
+import { useFormatMoney } from '@/hooks/use-format-money';
 import { addMonths, formatMonth, monthRange, today } from '@/lib/date';
-import { formatMoney } from '@/lib/format';
 
 const BAR_CLASSES: Record<BudgetStatus, string> = {
   ok: 'bg-green-500',
@@ -16,6 +16,7 @@ const BAR_CLASSES: Record<BudgetStatus, string> = {
 };
 
 export default function BudgetsScreen() {
+  const formatAmount = useFormatMoney();
   const [month, setMonth] = useState(() => monthRange(today()).start);
   const isCurrentMonth = month === monthRange(today()).start;
 
@@ -71,9 +72,9 @@ export default function BudgetsScreen() {
                 <View className="gap-1">
                   <Text className="text-sm text-brand-50">Gastado / Presupuesto</Text>
                   <Text className="text-2xl font-bold text-white">
-                    {formatMoney(totals.spent)}{' '}
+                    {formatAmount(totals.spent)}{' '}
                     <Text className="text-base font-medium text-brand-100">
-                      de {formatMoney(totals.budget)}
+                      de {formatAmount(totals.budget)}
                     </Text>
                   </Text>
                 </View>
@@ -84,8 +85,8 @@ export default function BudgetsScreen() {
                 />
                 <Text className="text-xs text-brand-100">
                   {totals.remaining >= 0
-                    ? `Te quedan ${formatMoney(totals.remaining)} este mes`
-                    : `Te pasaste por ${formatMoney(-totals.remaining)}`}
+                    ? `Te quedan ${formatAmount(totals.remaining)} este mes`
+                    : `Te pasaste por ${formatAmount(-totals.remaining)}`}
                 </Text>
               </View>
             ) : null}
@@ -122,7 +123,7 @@ export default function BudgetsScreen() {
             <View className="mt-3 gap-3">
               {data.unbudgetedSpent > 0 ? (
                 <Text className="text-center text-sm text-neutral-500">
-                  Sin presupuesto: {formatMoney(data.unbudgetedSpent)}
+                  Sin presupuesto: {formatAmount(data.unbudgetedSpent)}
                 </Text>
               ) : null}
               {data.categories.length ? (
@@ -147,6 +148,7 @@ function BudgetCard({
   onPress: () => void;
   onLongPress: () => void;
 }) {
+  const formatAmount = useFormatMoney();
   return (
     <Pressable
       accessibilityRole="button"
@@ -160,21 +162,21 @@ function BudgetCard({
         </Text>
         <Text className="text-sm text-neutral-500">
           <Text className="font-semibold text-neutral-900 dark:text-white">
-            {formatMoney(p.spent)}
+            {formatAmount(p.spent)}
           </Text>{' '}
-          de {formatMoney(p.budget)}
+          de {formatAmount(p.budget)}
         </Text>
       </View>
       <ProgressBar ratio={p.ratio} status={p.status} />
       <View className="flex-row items-center justify-between gap-3">
         <Text className={`text-xs ${p.status === 'over' ? 'text-red-500' : 'text-neutral-500'}`}>
           {p.remaining >= 0
-            ? `Te quedan ${formatMoney(p.remaining)}`
-            : `Te pasaste por ${formatMoney(-p.remaining)}`}
+            ? `Te quedan ${formatAmount(p.remaining)}`
+            : `Te pasaste por ${formatAmount(-p.remaining)}`}
         </Text>
         {p.installmentsSpent > 0 ? (
           <Text className="text-xs text-neutral-500">
-            {formatMoney(p.installmentsSpent)} en MSI
+            {formatAmount(p.installmentsSpent)} en MSI
           </Text>
         ) : null}
       </View>

@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { formatMoney } from '@/lib/format';
+import { useFormatMoney } from '@/hooks/use-format-money';
 
 import type { Transaction } from '../api';
 import { TRANSACTION_KINDS } from '../constants';
@@ -16,6 +16,7 @@ const accountLabel = (account: { name: string; institution: string | null } | nu
   account ? [account.institution, account.name].filter(Boolean).join(' · ') : '—';
 
 export function TransactionRow({ transaction: t, onPress, onLongPress }: Props) {
+  const formatAmount = useFormatMoney();
   const title =
     t.description ||
     t.category ||
@@ -28,10 +29,10 @@ export function TransactionRow({ transaction: t, onPress, onLongPress }: Props) 
 
   const amountText =
     t.kind === 'income'
-      ? `+${formatMoney(t.amount)}`
+      ? `+${formatAmount(t.amount)}`
       : t.kind === 'expense'
-        ? `-${formatMoney(t.amount)}`
-        : formatMoney(t.amount);
+        ? `-${formatAmount(t.amount)}`
+        : formatAmount(t.amount);
 
   const amountColor =
     t.kind === 'income'
@@ -70,7 +71,7 @@ export function TransactionRow({ transaction: t, onPress, onLongPress }: Props) 
         {msi ? (
           <View className="mt-1 self-start rounded-full bg-brand-50 px-2 py-0.5 dark:bg-brand-700/30">
             <Text className="text-xs font-medium text-brand-700 dark:text-brand-100">
-              {t.installment_months} MSI · {formatMoney(msi.monthly)}/mes ·{' '}
+              {t.installment_months} MSI · {formatAmount(msi.monthly)}/mes ·{' '}
               {msi.isDone ? 'Liquidado' : `${msi.paid}/${t.installment_months} pagados`}
             </Text>
           </View>

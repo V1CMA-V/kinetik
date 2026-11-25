@@ -13,9 +13,10 @@ import {
 } from '@/features/subscriptions/api';
 import { SubscriptionCard } from '@/features/subscriptions/components/subscription-card';
 import { FREQUENCIES } from '@/features/subscriptions/constants';
-import { formatMoney } from '@/lib/format';
+import { useFormatMoney } from '@/hooks/use-format-money';
 
 export default function SubscriptionsScreen() {
+  const formatAmount = useFormatMoney();
   const subscriptions = useSubscriptions();
   const processDue = useProcessDueSubscriptions();
   const setActive = useSetSubscriptionActive();
@@ -82,9 +83,9 @@ export default function SubscriptionsScreen() {
 
             <View className="gap-1 rounded-2xl bg-brand-500 p-5">
               <Text className="text-sm text-brand-50">Pagas al mes</Text>
-              <Text className="text-3xl font-bold text-white">{formatMoney(monthly)}</Text>
+              <Text className="text-3xl font-bold text-white">{formatAmount(monthly)}</Text>
               <Text className="text-xs text-brand-100">
-                {formatMoney(monthly * 12)} al año · trimestrales y anuales prorrateadas
+                {formatAmount(monthly * 12)} al año · trimestrales y anuales prorrateadas
               </Text>
             </View>
 

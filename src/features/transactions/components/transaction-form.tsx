@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
 import { type Account, useAccounts } from '@/features/accounts/api';
-import { formatMoney } from '@/lib/format';
+import { useFormatMoney } from '@/hooks/use-format-money';
 
 import {
   EXPENSE_CATEGORIES,
@@ -78,6 +78,7 @@ function TransactionFields({
   children,
   accounts: accountList,
 }: Props & { accounts: Account[] }) {
+  const formatAmount = useFormatMoney();
   const { control, handleSubmit, formState, setValue, getValues } = useForm<
     TransactionFormInput,
     unknown,
@@ -247,9 +248,9 @@ function TransactionFields({
                   <Text className="text-sm text-neutral-600 dark:text-neutral-400">
                     {value} pagos de{' '}
                     <Text className="font-semibold text-neutral-900 dark:text-white">
-                      {formatMoney(numericAmount / value)}
+                      {formatAmount(numericAmount / value)}
                     </Text>
-                    . Tu disponible baja {formatMoney(numericAmount)} desde hoy.
+                    . Tu disponible baja {formatAmount(numericAmount)} desde hoy.
                   </Text>
                 ) : null}
               </View>
