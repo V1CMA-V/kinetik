@@ -3,17 +3,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { accountKeys } from '@/features/accounts/api';
 import { monthRange } from '@/lib/date';
 import { supabase } from '@/lib/supabase';
-import type { TablesInsert } from '@/types/database';
+import type { TablesInsert, TablesUpdate } from '@/types/database';
 
 const TRANSACTION_SELECT = `
   *,
-  account:accounts!transactions_account_id_fkey (id, name, institution, type),
+  account:accounts!transactions_account_id_fkey (id, name, institution, type, statement_day),
   to_account:accounts!transactions_to_account_id_fkey (id, name, institution, type)
 `;
 
 export const transactionKeys = {
   all: ['transactions'] as const,
   month: (month: string) => [...transactionKeys.all, 'month', month] as const,
+  detail: (id: string) => [...transactionKeys.all, 'detail', id] as const,
 };
 
 /** Transactions of the month that contains `month` (any `YYYY-MM-DD` in it). */
@@ -38,6 +39,22 @@ export function useMonthTransactions(month: string) {
 
 export type Transaction = NonNullable<ReturnType<typeof useMonthTransactions>['data']>[number];
 
+/** A single transaction; `null` if it doesn't exist (e.g. right after deleting it). */
+export function useTransaction(id: string) {
+  return useQuery({
+    queryKey: transactionKeys.detail(id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(TRANSACTION_SELECT)
+        .eq('id', id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 function useInvalidateMoney() {
   const queryClient = useQueryClient();
   // Balances change through a DB trigger, so accounts must be refetched too.
@@ -54,6 +71,19 @@ export function useCreateTransaction() {
   return useMutation({
     mutationFn: async (transaction: TablesInsert<'transactions'>) => {
       const { error } = await supabase.from('transactions').insert(transaction);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+/** The DB trigger reverts the old row's effect on balances and applies the new one. */
+export function useUpdateTransaction() {
+  const invalidate = useInvalidateMoney();
+
+  return useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: TablesUpdate<'transactions'> }) => {
+      const { error } = await supabase.from('transactions').update(values).eq('id', id);
       if (error) throw error;
     },
     onSuccess: invalidate,

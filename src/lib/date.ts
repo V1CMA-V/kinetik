@@ -62,3 +62,10 @@ export function formatDay(iso: string) {
   if (iso === addDays(now, -1)) return 'Ayer';
   return capitalize(dayFormatter.format(parseISODate(iso)));
 }
+
+const shortDateFormatter = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' });
+
+/** E.g. "23 dic". */
+export function formatShortDate(iso: string) {
+  return shortDateFormatter.format(parseISODate(iso));
+}

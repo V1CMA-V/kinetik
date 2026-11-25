@@ -8,13 +8,14 @@ import { installmentProgress } from '../installments';
 
 type Props = {
   transaction: Transaction;
+  onPress?: () => void;
   onLongPress?: () => void;
 };
 
 const accountLabel = (account: { name: string; institution: string | null } | null) =>
   account ? [account.institution, account.name].filter(Boolean).join(' · ') : '—';
 
-export function TransactionRow({ transaction: t, onLongPress }: Props) {
+export function TransactionRow({ transaction: t, onPress, onLongPress }: Props) {
   const title =
     t.description ||
     t.category ||
@@ -40,11 +41,12 @@ export function TransactionRow({ transaction: t, onLongPress }: Props) {
         : 'text-brand-600 dark:text-brand-100';
 
   const msi = t.installment_months
-    ? installmentProgress(t.amount, t.installment_months, t.occurred_on)
+    ? installmentProgress(t.amount, t.installment_months, t.occurred_on, t.account?.statement_day)
     : null;
 
   return (
     <Pressable
+      onPress={onPress}
       onLongPress={onLongPress}
       className="flex-row items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 active:opacity-80 dark:border-neutral-800 dark:bg-neutral-900"
     >

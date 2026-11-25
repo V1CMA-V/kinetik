@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Constants } from '@/types/database';
+import { Constants, type Tables } from '@/types/database';
 
 import { INSTALLMENT_OPTIONS } from './constants';
 
@@ -55,3 +55,17 @@ export const transactionSchema = z
 
 export type TransactionFormInput = z.input<typeof transactionSchema>;
 export type TransactionFormOutput = z.output<typeof transactionSchema>;
+
+/** Maps a stored transaction back to form values. */
+export function transactionToFormValues(transaction: Tables<'transactions'>): TransactionFormInput {
+  return {
+    kind: transaction.kind,
+    amount: transaction.amount.toFixed(2),
+    accountId: transaction.account_id,
+    toAccountId: transaction.to_account_id ?? undefined,
+    category: transaction.category ?? undefined,
+    description: transaction.description ?? '',
+    occurredOn: transaction.occurred_on,
+    installmentMonths: transaction.installment_months,
+  };
+}

@@ -78,11 +78,22 @@ export default function TransactionsScreen() {
 
             <View className="gap-3">
               <Button title="Agregar movimiento" onPress={() => router.push('/transactions/new')} />
-              <Button
-                title="Suscripciones"
-                variant="secondary"
-                onPress={() => router.push('/transactions/subscriptions')}
-              />
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Button
+                    title="Suscripciones"
+                    variant="secondary"
+                    onPress={() => router.push('/transactions/subscriptions')}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Button
+                    title="Presupuestos"
+                    variant="secondary"
+                    onPress={() => router.push('/transactions/budgets')}
+                  />
+                </View>
+              </View>
             </View>
           </View>
         }
@@ -91,7 +102,13 @@ export default function TransactionsScreen() {
         )}
         renderItem={({ item }) => (
           <View className="mb-2">
-            <TransactionRow transaction={item} onLongPress={() => confirmDelete(item)} />
+            <TransactionRow
+              transaction={item}
+              onPress={() =>
+                router.push({ pathname: '/transactions/[id]', params: { id: item.id } })
+              }
+              onLongPress={() => confirmDelete(item)}
+            />
           </View>
         )}
         ListEmptyComponent={
@@ -108,7 +125,7 @@ export default function TransactionsScreen() {
         ListFooterComponent={
           sections.length ? (
             <Text className="mt-3 text-center text-xs text-neutral-500">
-              Mantén presionado un movimiento para eliminarlo
+              Toca para editar · mantén presionado para eliminar
             </Text>
           ) : undefined
         }
