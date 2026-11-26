@@ -11,13 +11,15 @@ import { MonthProjectionCard } from '@/features/analysis/components/month-projec
 import { computeProjection } from '@/features/analysis/projection';
 import { useSpendingHistory } from '@/features/analysis/use-spending-history';
 import { useBudgetProgress } from '@/features/budgets/api';
+import { ScopeFilter, useScope } from '@/features/household/components/scope-filter';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatMonth, monthRange, today } from '@/lib/date';
 
 export default function AnalysisScreen() {
   const formatAmount = useFormatMoney();
   const [month, setMonth] = useState(() => monthRange(today()).start);
-  const history = useSpendingHistory(month);
+  const scope = useScope();
+  const history = useSpendingHistory(month, scope);
   const budgets = useBudgetProgress(month);
 
   const selected = history.months[history.months.length - 1];
@@ -57,9 +59,13 @@ export default function AnalysisScreen() {
     [isCurrentMonth, current, previous.spending],
   );
 
+  // Budgets cover all your spending, so they only compare against the "Todo" view.
   const budgetsByCategory = useMemo(
-    () => new Map((budgets.data?.categories ?? []).map((c) => [c.category, c])),
-    [budgets.data],
+    () =>
+      new Map(
+        (scope === 'all' ? (budgets.data?.categories ?? []) : []).map((c) => [c.category, c]),
+      ),
+    [budgets.data, scope],
   );
 
   return (
@@ -80,6 +86,7 @@ export default function AnalysisScreen() {
         <View className="gap-4">
           <Text className="font-display text-3xl font-bold text-ink">Análisis</Text>
           <MonthSwitcher month={month} onChange={setMonth} />
+          <ScopeFilter />
         </View>
 
         {history.isPending ? (

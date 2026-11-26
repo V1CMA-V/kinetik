@@ -7,8 +7,8 @@ import type { TablesInsert, TablesUpdate } from '@/types/database';
 
 const TRANSACTION_SELECT = `
   *,
-  account:accounts!transactions_account_id_fkey (id, name, institution, type, statement_day),
-  to_account:accounts!transactions_to_account_id_fkey (id, name, institution, type)
+  account:accounts!transactions_account_id_fkey (id, name, institution, type, statement_day, household_id),
+  to_account:accounts!transactions_to_account_id_fkey (id, name, institution, type, household_id)
 `;
 
 export const transactionKeys = {

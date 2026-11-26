@@ -8,6 +8,8 @@ import { Screen } from '@/components/screen';
 import { Fab } from '@/components/ui/fab';
 import { Icon } from '@/components/ui/icon';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
+import { ScopeFilter, useScope } from '@/features/household/components/scope-filter';
+import { filterByScope } from '@/features/household/scope';
 import {
   type Transaction,
   useDeleteTransaction,
@@ -26,19 +28,20 @@ export default function TransactionsScreen() {
   const transactions = useMonthTransactions(month);
   const remove = useDeleteTransaction();
   const myId = useAuthStore((s) => s.session?.user.id);
+  const scope = useScope();
 
   const { sections, income, expense } = useMemo(() => {
     const byDay = new Map<string, Transaction[]>();
     let income = 0;
     let expense = 0;
-    for (const t of transactions.data ?? []) {
+    for (const t of filterByScope(transactions.data ?? [], scope)) {
       if (t.kind === 'income') income += t.amount;
       if (t.kind === 'expense') expense += t.amount;
       byDay.set(t.occurred_on, [...(byDay.get(t.occurred_on) ?? []), t]);
     }
     const sections = [...byDay.entries()].map(([day, data]) => ({ title: formatDay(day), data }));
     return { sections, income, expense };
-  }, [transactions.data]);
+  }, [transactions.data, scope]);
 
   const confirmDelete = (t: Transaction) => {
     alert('Eliminar movimiento', 'El saldo de las cuentas se ajustará automáticamente.', [
@@ -78,6 +81,8 @@ export default function TransactionsScreen() {
             </View>
 
             <MonthSwitcher month={month} onChange={setMonth} />
+
+            <ScopeFilter />
 
             <View className="gap-4 rounded-card border border-line bg-card p-4">
               <View className="flex-row">

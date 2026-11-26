@@ -18,7 +18,7 @@ export type BudgetExpense = {
   category: string | null;
   occurred_on: string;
   installment_months: number | null;
-  account: { statement_day: number | null } | null;
+  account: { statement_day: number | null; household_id?: string | null } | null;
 };
 
 export type BudgetLimit = { id: string; category: string; amount: number };

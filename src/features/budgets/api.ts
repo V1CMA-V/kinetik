@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { type Scope, filterByScope } from '@/features/household/scope';
 import { transactionKeys } from '@/features/transactions/api';
 import { addMonths, monthRange } from '@/lib/date';
 import { supabase } from '@/lib/supabase';
@@ -62,7 +63,7 @@ function useBudgetExpenses(start: string, end: string) {
       const { data, error } = await supabase
         .from('transactions')
         .select(
-          'kind, amount, category, occurred_on, installment_months, account:accounts!transactions_account_id_fkey (statement_day)',
+          'kind, amount, category, occurred_on, installment_months, account:accounts!transactions_account_id_fkey (statement_day, household_id)',
         )
         .eq('kind', 'expense')
         .lte('occurred_on', end)
@@ -75,14 +76,18 @@ function useBudgetExpenses(start: string, end: string) {
   });
 }
 
-/** Spending of the month that contains `month` by category (MSI by installment). */
-export function useMonthSpending(month: string) {
+/**
+ * Spending of the month that contains `month` by category (MSI by installment),
+ * optionally only the personal or the shared part.
+ */
+export function useMonthSpending(month: string, scope: Scope = 'all') {
   const { start, end } = monthRange(month);
   const expenses = useBudgetExpenses(start, end);
 
   const data = useMemo(
-    () => (expenses.data ? computeMonthSpending(start, expenses.data) : undefined),
-    [start, expenses.data],
+    () =>
+      expenses.data ? computeMonthSpending(start, filterByScope(expenses.data, scope)) : undefined,
+    [start, expenses.data, scope],
   );
 
   return {

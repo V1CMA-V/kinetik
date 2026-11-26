@@ -8,6 +8,8 @@ import { Text } from '@/components/ui/text';
 import { CategoryTrend } from '@/features/analysis/components/category-trend';
 import { useSpendingHistory } from '@/features/analysis/use-spending-history';
 import { useBudgetProgress } from '@/features/budgets/api';
+import { useScope } from '@/features/household/components/scope-filter';
+import { filterByScope } from '@/features/household/scope';
 import { type Transaction, useMonthTransactions } from '@/features/transactions/api';
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
 import { useFormatMoney } from '@/hooks/use-format-money';
@@ -26,7 +28,8 @@ export default function CategoryDetailScreen() {
 
   const formatAmount = useFormatMoney();
   const colors = useThemeColors();
-  const history = useSpendingHistory(month);
+  const scope = useScope();
+  const history = useSpendingHistory(month, scope);
   const transactions = useMonthTransactions(month);
   const budgets = useBudgetProgress(month);
 
@@ -40,19 +43,21 @@ export default function CategoryDetailScreen() {
   const average = previous.length
     ? previous.reduce((sum, m) => sum + m.amount, 0) / previous.length
     : 0;
-  const budget = budgets.data?.categories.find((c) => c.category === category);
+  // Budgets cover all your spending, so they only compare against the "Todo" view.
+  const budget =
+    scope === 'all' ? budgets.data?.categories.find((c) => c.category === category) : undefined;
 
   const { sections, listed } = useMemo(() => {
     const byDay = new Map<string, Transaction[]>();
     let listed = 0;
-    for (const t of transactions.data ?? []) {
+    for (const t of filterByScope(transactions.data ?? [], scope)) {
       if (t.kind !== 'expense' || (t.category || FALLBACK_CATEGORY) !== category) continue;
       listed += t.amount;
       byDay.set(t.occurred_on, [...(byDay.get(t.occurred_on) ?? []), t]);
     }
     const sections = [...byDay.entries()].map(([day, data]) => ({ title: formatDay(day), data }));
     return { sections, listed };
-  }, [transactions.data, category]);
+  }, [transactions.data, category, scope]);
 
   const monthName = formatMonth(month).toLowerCase();
   const vsAverage = average ? (amount - average) / average : null;
@@ -87,7 +92,10 @@ export default function CategoryDetailScreen() {
                 <Text numberOfLines={1} className="text-base font-semibold text-ink">
                   {category}
                 </Text>
-                <Text className="text-xs text-ink-muted">{formatMonth(month)}</Text>
+                <Text className="text-xs text-ink-muted">
+                  {formatMonth(month)}
+                  {scope === 'all' ? '' : scope === 'shared' ? ' · Compartido' : ' · Personal'}
+                </Text>
               </View>
             </View>
 

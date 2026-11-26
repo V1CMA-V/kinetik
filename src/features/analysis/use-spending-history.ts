@@ -1,4 +1,5 @@
 import { useMonthSpending } from '@/features/budgets/api';
+import type { Scope } from '@/features/household/scope';
 import { addMonths } from '@/lib/date';
 
 import { useIncomeHistory } from './api';
@@ -7,20 +8,21 @@ import { useIncomeHistory } from './api';
 export const HISTORY_MONTHS = 6;
 
 /**
- * Spending and income of the 6 months that end at `month` (oldest first). Fixed
- * number of hooks, so it's safe to call on every render.
+ * Spending and income of the 6 months that end at `month` (oldest first), for the
+ * given personal / shared `scope`. Fixed number of hooks, so it's safe to call on
+ * every render.
  */
-export function useSpendingHistory(month: string) {
+export function useSpendingHistory(month: string, scope: Scope = 'all') {
   const months = [5, 4, 3, 2, 1, 0].map((back) => addMonths(month, -back));
   const queries = [
-    useMonthSpending(months[0]),
-    useMonthSpending(months[1]),
-    useMonthSpending(months[2]),
-    useMonthSpending(months[3]),
-    useMonthSpending(months[4]),
-    useMonthSpending(months[5]),
+    useMonthSpending(months[0], scope),
+    useMonthSpending(months[1], scope),
+    useMonthSpending(months[2], scope),
+    useMonthSpending(months[3], scope),
+    useMonthSpending(months[4], scope),
+    useMonthSpending(months[5], scope),
   ];
-  const income = useIncomeHistory(months);
+  const income = useIncomeHistory(months, scope);
 
   return {
     months: months.map((m, i) => ({
