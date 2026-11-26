@@ -262,6 +262,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      income_profiles: {
+        Row: {
+          anchor_date: string | null;
+          created_at: string;
+          deposit_account_id: string | null;
+          pay_amount: number;
+          pay_day_1: number | null;
+          pay_day_2: number | null;
+          pay_frequency: Database['public']['Enums']['pay_frequency'];
+          updated_at: string;
+          user_id: string;
+          variable_monthly: number;
+        };
+        Insert: {
+          anchor_date?: string | null;
+          created_at?: string;
+          deposit_account_id?: string | null;
+          pay_amount: number;
+          pay_day_1?: number | null;
+          pay_day_2?: number | null;
+          pay_frequency: Database['public']['Enums']['pay_frequency'];
+          updated_at?: string;
+          user_id?: string;
+          variable_monthly?: number;
+        };
+        Update: {
+          anchor_date?: string | null;
+          created_at?: string;
+          deposit_account_id?: string | null;
+          pay_amount?: number;
+          pay_day_1?: number | null;
+          pay_day_2?: number | null;
+          pay_frequency?: Database['public']['Enums']['pay_frequency'];
+          updated_at?: string;
+          user_id?: string;
+          variable_monthly?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'income_profiles_deposit_account_id_fkey';
+            columns: ['deposit_account_id'];
+            isOneToOne: false;
+            referencedRelation: 'accounts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           display_name: string | null;
@@ -474,6 +521,7 @@ export type Database = {
     Enums: {
       account_type: 'bank_account' | 'credit_card' | 'cash' | 'investment';
       billing_frequency: 'monthly' | 'quarterly' | 'yearly';
+      pay_frequency: 'weekly' | 'biweekly' | 'semimonthly' | 'monthly';
       transaction_kind: 'expense' | 'income' | 'transfer';
     };
     CompositeTypes: {
@@ -598,6 +646,7 @@ export const Constants = {
     Enums: {
       account_type: ['bank_account', 'credit_card', 'cash', 'investment'],
       billing_frequency: ['monthly', 'quarterly', 'yearly'],
+      pay_frequency: ['weekly', 'biweekly', 'semimonthly', 'monthly'],
       transaction_kind: ['expense', 'income', 'transfer'],
     },
   },

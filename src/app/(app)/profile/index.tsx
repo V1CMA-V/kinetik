@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { useAccounts } from '@/features/accounts/api';
 import { HouseholdSection } from '@/features/household/components/household-section';
+import { IncomeSection } from '@/features/income/components/income-section';
 import { getDisplayName } from '@/features/profile/api';
 import { AccountSection } from '@/features/profile/components/account-section';
 import { ArchivedAccountsSection } from '@/features/profile/components/archived-accounts-section';
@@ -108,6 +109,7 @@ export default function ProfileScreen() {
         >
           <AccountSection editingName={editingName} onEditingNameChange={setEditingName} />
         </View>
+        <IncomeSection />
         <HouseholdSection />
         <SecuritySection />
         <NotificationsSection />
