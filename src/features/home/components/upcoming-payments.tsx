@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import { groupedRowClass } from '@/components/ui/grouped';
 import { Text } from '@/components/ui/text';
+import type { PaymentCoverage } from '@/features/accounts/payment-coverage';
 import type { CardSummary } from '@/features/accounts/statements';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatDay, formatShortDate } from '@/lib/date';
@@ -13,6 +14,8 @@ type Props = {
   cards: CardSummary[];
   /** Credit cards without día de corte / día límite de pago. */
   unconfiguredCards: number;
+  /** Money in the accounts chosen to pay the cards, and what's left after paying them. */
+  coverage: Pick<PaymentCoverage, 'available' | 'balance' | 'dueTotal'>;
 };
 
 /** Cards whose due date is this close (or closer) are highlighted. */
@@ -34,18 +37,44 @@ function dueColor(days: number) {
 }
 
 /** Per card: what's due from the closed statement and what the statement in progress adds up to. */
-export function UpcomingPayments({ cards, unconfiguredCards }: Props) {
+export function UpcomingPayments({ cards, unconfiguredCards, coverage }: Props) {
   const formatAmount = useFormatMoney();
-  const pendingTotal = round2(
-    cards.reduce((sum, c) => sum + (c.statement.isPaid ? 0 : c.statement.remainingToPay), 0),
-  );
   const currentTotal = round2(cards.reduce((sum, c) => sum + c.statement.currentPeriod.total, 0));
+  const enough = coverage.balance >= 0;
 
   return (
     <HomeSection
       title="Pagos de tarjetas"
-      aside={pendingTotal > 0 ? `Por pagar ${formatAmount(pendingTotal)}` : undefined}
+      action={{ label: 'Ver plan', onPress: () => router.push('/accounts/payments') }}
     >
+      {coverage.dueTotal > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/accounts/payments')}
+          className={`flex-row items-center gap-3 rounded-card px-4 py-3 active:opacity-80 ${
+            enough ? 'bg-income/10' : 'bg-expense-soft'
+          }`}
+        >
+          <View className="flex-1 gap-0.5">
+            <Text className="text-sm font-semibold text-ink">
+              Por pagar {formatAmount(coverage.dueTotal)}
+            </Text>
+            <Text className="text-xs tabular-nums text-ink-muted">
+              Tienes {formatAmount(coverage.available)} en tus cuentas
+            </Text>
+          </View>
+          <View className="items-end gap-0.5">
+            <Text className={`text-xs font-medium ${enough ? 'text-income' : 'text-expense'}`}>
+              {enough ? 'Te sobran' : 'Te faltan'}
+            </Text>
+            <Text
+              className={`text-base font-bold tabular-nums ${enough ? 'text-income' : 'text-expense'}`}
+            >
+              {formatAmount(Math.abs(coverage.balance))}
+            </Text>
+          </View>
+        </Pressable>
+      ) : null}
       {cards.length ? (
         <View>
           {cards.map((c, i) => {

@@ -7,6 +7,7 @@ export default function AccountsLayout() {
       <Stack.Screen name="new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="[id]/index" />
       <Stack.Screen name="[id]/edit" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="payments" />
       <Stack.Screen name="goals/index" />
       <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="goals/[id]/index" />

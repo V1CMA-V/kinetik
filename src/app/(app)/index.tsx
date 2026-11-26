@@ -7,6 +7,7 @@ import { Screen } from '@/components/screen';
 import { PrivacyToggle } from '@/components/ui/privacy-toggle';
 import { useAccounts } from '@/features/accounts/api';
 import { useCreditCardStatements } from '@/features/accounts/statements';
+import { usePaymentCoverage } from '@/features/accounts/use-payment-coverage';
 import { useBudgetProgress, useMonthSpending } from '@/features/budgets/api';
 import { BalanceHero } from '@/features/home/components/balance-hero';
 import { HomeSection } from '@/features/home/components/home-section';
@@ -40,6 +41,7 @@ export default function HomeScreen() {
   const now = today();
   const accounts = useAccounts();
   const statements = useCreditCardStatements();
+  const { coverage } = usePaymentCoverage();
   const spending = useMonthSpending(now);
   const previousSpending = useMonthSpending(addMonths(now, -1));
   const budget = useBudgetProgress(now);
@@ -125,6 +127,7 @@ export default function HomeScreen() {
               <UpcomingPayments
                 cards={statements.cardSummaries}
                 unconfiguredCards={unconfiguredCards}
+                coverage={coverage}
               />
             ) : null}
 
