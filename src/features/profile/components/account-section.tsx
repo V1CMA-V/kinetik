@@ -37,6 +37,13 @@ export function AccountSection({ editingName, onEditingNameChange }: AccountSect
         label="Cambiar contraseña"
         icon={{ ios: 'lock', android: 'lock' }}
         onPress={() => router.push('/profile/password')}
+      />
+      <SettingsRow
+        label="Eliminar cuenta"
+        description="Borra tu cuenta y todos tus datos"
+        icon={{ ios: 'trash', android: 'delete' }}
+        destructive
+        onPress={() => router.push('/profile/delete-account')}
         last
       />
     </Section>

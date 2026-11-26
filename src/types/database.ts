@@ -449,6 +449,7 @@ export type Database = {
           expires_at: string;
         }[];
       };
+      delete_my_account: { Args: never; Returns: undefined };
       is_household_member: {
         Args: { p_household_id: string };
         Returns: boolean;

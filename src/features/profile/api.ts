@@ -99,3 +99,18 @@ export function useChangePassword() {
     },
   });
 }
+
+/** Permanently deletes the account and all its data, then signs out. */
+export function useDeleteAccount() {
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        await useAuthStore.getState().deleteAccount();
+      } catch {
+        throw new ProfileError(
+          'No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo.',
+        );
+      }
+    },
+  });
+}
