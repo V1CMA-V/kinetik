@@ -4,7 +4,9 @@ import { create } from 'zustand';
 import { cancelAllReminders } from '@/features/notifications/reminders';
 import { clearWidgetSnapshot } from '@/widgets/update';
 import { signOutFromGoogle } from '@/features/auth/google';
+import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
+import { useSettingsStore } from '@/stores/settings-store';
 
 type AuthState = {
   session: Session | null;
@@ -13,7 +15,13 @@ type AuthState = {
   signOut: () => Promise<void>;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
+/** Drop everything cached for the previous user so the next one never sees it. */
+function clearUserData() {
+  queryClient.clear();
+  useSettingsStore.setState({ lastAccountId: null, lastCategories: {} });
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   isLoading: true,
   init: () => {
@@ -27,6 +35,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         cancelAllReminders();
         clearWidgetSnapshot();
       }
+      const previousUserId = get().session?.user.id;
+      if (previousUserId && previousUserId !== session?.user.id) {
+        clearUserData();
+      }
       set({ session, isLoading: false });
     });
 
@@ -37,5 +49,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     clearWidgetSnapshot();
     await signOutFromGoogle();
     await supabase.auth.signOut();
+    clearUserData();
   },
 }));
