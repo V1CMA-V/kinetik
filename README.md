@@ -1,56 +1,96 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="assets/images/icon.png" width="96" alt="Kinetik" />
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Kinetik
 
-## Get started
+**Finanzas personales para México.** Tus cuentas, tarjetas de crédito, suscripciones y
+presupuestos en un solo lugar, con tu patrimonio neto real.
 
-1. Install dependencies
+</div>
 
-   ```bash
-   npm install
-   ```
+<p align="center">
+  <img src="docs/screenshots/welcome-1.png" width="240" alt="Todo tu dinero en un lugar" />
+  <img src="docs/screenshots/welcome-2.png" width="240" alt="Paga tus tarjetas a tiempo" />
+  <img src="docs/screenshots/welcome-3.png" width="240" alt="Sabe a dónde se va tu dinero" />
+</p>
 
-2. Start the app
+## Funciones
 
-   ```bash
-   npx expo start
-   ```
+- **Cuentas y patrimonio**: cuentas bancarias, efectivo, inversiones y tarjetas de crédito,
+  agrupadas por banco, con lo que tienes frente a lo que debes.
+- **Tarjetas de crédito**: fecha de corte y de pago, cuánto pagar en cada periodo y avisos
+  antes de que venza.
+- **Meses sin intereses**: compras a MSI repartidas mes a mes en el corte y en tus presupuestos.
+- **Movimientos**: gastos, ingresos y transferencias entre cuentas, con categorías.
+- **Suscripciones**: cargos mensuales, trimestrales o anuales que se registran solos.
+- **Presupuestos**: límite mensual por categoría, cuánto llevas y cuánto puedes gastar al día.
+- **Análisis**: flujo de efectivo, proyección y gasto por categoría de cada mes.
+- **Metas**: junta para un viaje o un enganche, solo o en pareja, con las aportaciones de cada
+  quien y cuánto ahorrar al mes para llegar.
+- **En pareja**: comparte cuentas con un código de invitación, vean sus movimientos en tiempo
+  real con avisos push y filtren Análisis y Movimientos por lo personal o lo compartido.
+- **Privacidad**: bloqueo con huella o Face ID y botón para ocultar todos los montos.
+- **Atajos**: widget de Android y acciones rápidas desde el ícono para registrar un gasto.
 
-In the output, you'll find options to open the app in a
+## Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+| Capa          | Tecnología                                                                 |
+| ------------- | -------------------------------------------------------------------------- |
+| App           | [Expo](https://expo.dev) SDK 58, React Native, Expo Router, React Compiler |
+| UI            | NativeWind (Tailwind), Inter y Space Grotesk, tema claro y oscuro          |
+| Datos         | TanStack Query, Zustand, MMKV                                              |
+| Formularios   | React Hook Form + Zod                                                      |
+| Backend       | [Supabase](https://supabase.com): Postgres con RLS, Auth, Realtime, Edge Functions |
+| Autenticación | Correo y contraseña, Google Sign-In                                        |
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Empezar
 
-## Get a fresh project
-
-When you're ready, run:
+Requisitos: [Bun](https://bun.sh), un proyecto de Supabase y un teléfono o emulador con un
+[development build](https://docs.expo.dev/develop/development-builds/introduction/) (la app usa
+módulos nativos, no corre en Expo Go).
 
 ```bash
-npm run reset-project
+bun install
+cp .env.example .env   # llena las variables de Supabase y Google
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Aplica las migraciones de `supabase/migrations` a tu proyecto:
 
-### Other setup steps
+```bash
+bunx supabase link --project-ref <tu-project-ref>
+bunx supabase db push
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Compila e instala el development build una vez, y después solo arranca Metro:
 
-## Learn more
+```bash
+bun run android        # o: bunx eas-cli build --profile development
+bun run start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Scripts
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Comando             | Qué hace                         |
+| ------------------- | -------------------------------- |
+| `bun run start`     | Arranca Metro                    |
+| `bun run android`   | Compila y abre la app en Android |
+| `bun run ios`       | Compila y abre la app en iOS     |
+| `bun run lint`      | ESLint                           |
+| `bun run typecheck` | TypeScript sin emitir            |
+| `bun run test`      | Pruebas con Jest                 |
+| `bun run format`    | Prettier                         |
 
-## Join the community
+## Estructura
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+src/
+├── app/          # Pantallas (Expo Router): (auth) antes del login, (app) después
+├── features/     # Un módulo por dominio: accounts, transactions, budgets, household…
+├── components/   # UI compartida
+├── stores/       # Estado global (sesión, ajustes)
+├── lib/          # Cliente de Supabase, fechas, formato
+└── widgets/      # Widget de Android
+supabase/
+├── migrations/   # Esquema, RLS y funciones de Postgres
+└── functions/    # Edge Functions
+```
