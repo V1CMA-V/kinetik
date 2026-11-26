@@ -9,6 +9,7 @@ import {
   usePartnerNotifications,
   useSetPartnerNotifications,
 } from '@/features/household/api';
+import { useIncomeProfile } from '@/features/income/api';
 import {
   useNotificationPermission,
   useNotificationPermissionStore,
@@ -36,6 +37,9 @@ export function NotificationsSection() {
   const setCardReminders = useSettingsStore((s) => s.setCardReminders);
   const subscriptionReminders = useSettingsStore((s) => s.subscriptionReminders);
   const setSubscriptionReminders = useSettingsStore((s) => s.setSubscriptionReminders);
+  const paydayReminders = useSettingsStore((s) => s.paydayReminders);
+  const setPaydayReminders = useSettingsStore((s) => s.setPaydayReminders);
+  const hasIncome = !!useIncomeProfile().data;
   const daysBefore = useSettingsStore((s) => s.reminderDaysBefore);
   const setDaysBefore = useSettingsStore((s) => s.setReminderDaysBefore);
   const permission = useNotificationPermission();
@@ -93,6 +97,14 @@ export function NotificationsSection() {
             value={subscriptionReminders}
             onValueChange={setSubscriptionReminders}
           />
+          {hasIncome ? (
+            <SwitchRow
+              label="Días de pago"
+              description="El día antes y el día que te pagan"
+              value={paydayReminders}
+              onValueChange={setPaydayReminders}
+            />
+          ) : null}
           <View className="gap-3 px-4 py-3">
             <Text className="text-base text-ink">Avisarme</Text>
             <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">

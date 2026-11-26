@@ -9,7 +9,7 @@ export const REMINDER_CHANNEL_ID = 'reminders';
 /** Local notifications only exist on the native apps. */
 export const notificationsSupported = Platform.OS === 'ios' || Platform.OS === 'android';
 
-const REMINDER_ID_PREFIXES = ['card:', 'sub:'];
+const REMINDER_ID_PREFIXES = ['card:', 'sub:', 'payday:'];
 const isReminderId = (id: string) => REMINDER_ID_PREFIXES.some((p) => id.startsWith(p));
 
 export type PermissionState = 'granted' | 'denied' | 'undetermined';
@@ -63,7 +63,7 @@ async function ensureChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
     name: 'Recordatorios',
-    description: 'Pagos de tarjeta y cobros de suscripciones',
+    description: 'Pagos de tarjeta, cobros de suscripciones y días de pago',
     importance: AndroidImportance.HIGH,
   });
 }
@@ -105,7 +105,7 @@ export function applyReminderPlan(plan: Reminder[]) {
         content: {
           title: r.title,
           body: r.body,
-          data: { kind: r.kind, targetId: r.targetId },
+          data: { kind: r.kind, targetId: r.targetId, ...(r.income ? { income: r.income } : {}) },
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,

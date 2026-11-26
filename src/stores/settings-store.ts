@@ -27,6 +27,9 @@ type SettingsState = {
   setCardReminders: (value: boolean) => void;
   subscriptionReminders: boolean;
   setSubscriptionReminders: (value: boolean) => void;
+  /** The day before and the day of each payday (only with an income profile). */
+  paydayReminders: boolean;
+  setPaydayReminders: (value: boolean) => void;
   /** How many days before a due date / charge to remind. */
   reminderDaysBefore: ReminderDays;
   setReminderDaysBefore: (value: ReminderDays) => void;
@@ -60,6 +63,9 @@ export const useSettingsStore = create<SettingsState>()(
       setCardReminders: (cardReminders) => set({ cardReminders }),
       subscriptionReminders: true,
       setSubscriptionReminders: (subscriptionReminders) => set({ subscriptionReminders }),
+      // Older persisted state lacks it: persist's default shallow merge keeps this default.
+      paydayReminders: true,
+      setPaydayReminders: (paydayReminders) => set({ paydayReminders }),
       reminderDaysBefore: 3,
       setReminderDaysBefore: (reminderDaysBefore) => set({ reminderDaysBefore }),
       lastAccountId: null,

@@ -1,5 +1,7 @@
 import {
+  MAX_PAYDAYS,
   MAX_REMINDERS,
+  type PlanIncome,
   type PlanInput,
   type PlanSubscription,
   planReminders,
@@ -23,6 +25,8 @@ const input = (overrides: Partial<PlanInput> = {}): PlanInput => ({
   hideAmounts: false,
   cardReminders: true,
   subscriptionReminders: true,
+  paydayReminders: true,
+  income: null,
   cardPayments: [
     {
       accountId: 'c1',
@@ -114,6 +118,127 @@ describe('planReminders', () => {
   });
 });
 
+const income = (overrides: Partial<PlanIncome> = {}): PlanIncome => ({
+  pay_amount: 12500,
+  pay_frequency: 'semimonthly',
+  pay_day_1: 15,
+  pay_day_2: 31,
+  anchor_date: null,
+  deposit_account_id: 'a1',
+  ...overrides,
+});
+
+const card = (accountId: string, dueDate: string, amount: number) => ({
+  accountId,
+  name: accountId,
+  institution: null,
+  currency: 'MXN',
+  amount,
+  dueDate,
+});
+
+/** Only payday reminders, paydays on the 15th and last day of the month. */
+const paydayInput = (overrides: Partial<PlanInput> = {}) =>
+  input({
+    cardReminders: false,
+    subscriptionReminders: false,
+    income: income(),
+    cardPayments: [
+      card('c1', '2026-11-25', 1300), // before the first payday
+      card('c2', '2026-11-30', 8000), // on the payday counts
+      card('c3', '2026-12-10', 500),
+      card('c4', '2026-12-15', 0), // nothing to pay
+      card('c5', '2026-12-15', 700), // on the next payday: belongs to the next one
+    ],
+    ...overrides,
+  });
+
+describe('planReminders · paydays', () => {
+  it('plans the day before and the payday at 09:00 for the next paydays', () => {
+    const plan = planReminders(paydayInput());
+    expect(plan.map((r) => [r.id, r.date])).toEqual([
+      ['payday:2026-11-30:before', new Date(2026, 10, 29, 9)],
+      ['payday:2026-11-30:day', new Date(2026, 10, 30, 9)],
+      ['payday:2026-12-15:before', new Date(2026, 11, 14, 9)],
+      ['payday:2026-12-15:day', new Date(2026, 11, 15, 9)],
+      ['payday:2026-12-31:before', new Date(2026, 11, 30, 9)],
+      ['payday:2026-12-31:day', new Date(2026, 11, 31, 9)],
+      ['payday:2027-01-15:before', new Date(2027, 0, 14, 9)],
+      ['payday:2027-01-15:day', new Date(2027, 0, 15, 9)],
+    ]);
+    expect(plan.every((r) => r.kind === 'payday')).toBe(true);
+  });
+
+  it('summarizes the card payments due until the next payday', () => {
+    const [before, day, nextBefore, , lastBefore] = planReminders(paydayInput());
+    expect(before.title).toBe('Mañana te pagan');
+    expect(before.body).toBe('Tienes 2 pagos de tarjeta antes de tu siguiente pago: $8,500.00.');
+    expect(nextBefore.body).toBe('Tienes un pago de tarjeta antes de tu siguiente pago: $700.00.');
+    expect(lastBefore.body).toBe(
+      'No tienes pagos de tarjeta pendientes antes de tu siguiente pago.',
+    );
+    expect(day.title).toBe('Hoy te pagan');
+    expect(day.body).toBe('Registra tu ingreso de $12,500.00 en un toque.');
+  });
+
+  it('prefills the income only on the payday reminder', () => {
+    const [before, day] = planReminders(paydayInput());
+    expect(before.income).toBeUndefined();
+    expect(day).toMatchObject({ targetId: '2026-11-30' });
+    expect(day.income).toEqual({
+      kind: 'income',
+      amount: '12500.00',
+      category: 'Nómina',
+      accountId: 'a1',
+    });
+    const [, noAccount] = planReminders(
+      paydayInput({ income: income({ deposit_account_id: null }) }),
+    );
+    expect(noAccount.income).toEqual({ kind: 'income', amount: '12500.00', category: 'Nómina' });
+  });
+
+  it('hides amounts when asked', () => {
+    const plan = planReminders(paydayInput({ hideAmounts: true }));
+    expect(plan[0].body).toBe('Tienes 2 pagos de tarjeta antes de tu siguiente pago.');
+    expect(plan[1].body).toBe('Registra tu ingreso en un toque.');
+    for (const reminder of plan) expect(reminder.body).not.toMatch(/\$|12,500|8,500/);
+  });
+
+  it('skips moments already past on the payday itself', () => {
+    const early = planReminders(paydayInput({ now: new Date(2026, 10, 30, 8) }));
+    expect(early.slice(0, 2).map((r) => r.id)).toEqual([
+      'payday:2026-11-30:day',
+      'payday:2026-12-15:before',
+    ]);
+    const late = planReminders(paydayInput({ now: new Date(2026, 10, 30, 9) }));
+    expect(late[0].id).toBe('payday:2026-12-15:before');
+  });
+
+  it('needs the switch on and an income profile', () => {
+    expect(planReminders(paydayInput({ paydayReminders: false }))).toEqual([]);
+    expect(planReminders(paydayInput({ income: null }))).toEqual([]);
+    // An incomplete schedule plans nothing.
+    expect(
+      planReminders(
+        paydayInput({ income: income({ pay_frequency: 'weekly', anchor_date: null }) }),
+      ),
+    ).toEqual([]);
+  });
+
+  it(`plans at most ${MAX_PAYDAYS} paydays so card reminders keep their room`, () => {
+    const weekly = income({ pay_frequency: 'weekly', anchor_date: '2026-11-20' });
+    const plan = planReminders(input({ income: weekly }));
+    expect(plan.filter((r) => r.kind === 'payday')).toHaveLength(2 * MAX_PAYDAYS);
+    expect(plan.filter((r) => r.kind === 'card')).toHaveLength(3);
+    // Payday today (Friday) after 09:00 doesn't take a slot: the next 4 are the following Fridays.
+    expect(plan.find((r) => r.kind === 'payday')?.id).toBe('payday:2026-11-27:before');
+  });
+
+  it('is deterministic', () => {
+    expect(planReminders(paydayInput())).toEqual(planReminders(paydayInput()));
+  });
+});
+
 describe('planSignature', () => {
   it('only changes when the plan changes', () => {
     const plan = planReminders(input());
@@ -121,5 +246,11 @@ describe('planSignature', () => {
     expect(planSignature(planReminders(input({ hideAmounts: true })))).not.toBe(
       planSignature(plan),
     );
+  });
+
+  it('changes when the prefilled income changes, even with amounts hidden', () => {
+    const hidden = paydayInput({ hideAmounts: true });
+    const other = paydayInput({ hideAmounts: true, income: income({ pay_amount: 13000 }) });
+    expect(planSignature(planReminders(other))).not.toBe(planSignature(planReminders(hidden)));
   });
 });
