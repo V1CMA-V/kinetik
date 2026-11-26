@@ -9,6 +9,7 @@ import { groupedRowClass } from '@/components/ui/grouped';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { type GoalContribution, useDeleteContribution, useGoal } from '@/features/goals/api';
+import { GoalPace } from '@/features/goals/components/goal-pace';
 import { GoalProgressBar } from '@/features/goals/components/goal-progress-bar';
 import { formatTargetMonth } from '@/features/goals/format';
 import { computeGoalProgress } from '@/features/goals/progress';
@@ -153,6 +154,13 @@ export default function GoalDetailScreen() {
               >
                 {statusLine}
               </Text>
+
+              <GoalPace
+                remaining={p.remaining}
+                targetDate={current.target_date}
+                shared={isShared}
+                detailed
+              />
 
               {isShared && p.byUser.length ? (
                 <View className="gap-2 border-t border-line pt-4">

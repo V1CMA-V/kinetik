@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Switch, View } from 'react-native';
 
 import { FormScrollView } from '@/components/form-scroll-view';
@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useThemeColors } from '@/theme/colors';
 
 import { goalSchema, type GoalFormInput, type GoalFormOutput } from '../schemas';
+import { GoalPace } from './goal-pace';
 import { TargetDateField } from './target-date-field';
 
 /** Quick picks; tapping one fills the name. */
@@ -30,8 +31,16 @@ type Props = {
   submitLabel?: string;
   isSubmitting?: boolean;
   error?: string;
+  /** Already saved (edit mode), so the pace hint counts only what's missing. */
+  saved?: number;
   /** Extra actions below Guardar/Cancelar (e.g. delete). */
   children?: ReactNode;
+};
+
+/** Typed amount (`1,234.50`) as a number; 0 while it isn't valid. */
+const parseAmount = (value: string) => {
+  const n = Number(value.replace(/,/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
 export function GoalForm({
@@ -43,6 +52,7 @@ export function GoalForm({
   submitLabel = 'Guardar',
   isSubmitting,
   error,
+  saved = 0,
   children,
 }: Props) {
   const colors = useThemeColors();
@@ -54,6 +64,11 @@ export function GoalForm({
     resolver: zodResolver(goalSchema),
     defaultValues,
   });
+  const [targetAmount, targetDate, shared] = useWatch({
+    control,
+    name: ['targetAmount', 'targetDate', 'shared'],
+  });
+  const remaining = Math.round(Math.max(0, parseAmount(targetAmount) - saved) * 100) / 100;
 
   const submit = handleSubmit(onSubmit);
 
@@ -108,7 +123,12 @@ export function GoalForm({
           control={control}
           name="targetDate"
           render={({ field: { value, onChange } }) => (
-            <TargetDateField value={value} onChange={onChange} />
+            <View className="gap-1.5">
+              <TargetDateField value={value} onChange={onChange} />
+              {value ? (
+                <GoalPace remaining={remaining} targetDate={targetDate || null} shared={shared} />
+              ) : null}
+            </View>
           )}
         />
 

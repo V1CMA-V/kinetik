@@ -7,8 +7,10 @@ import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { useDeleteGoal, useGoal, useUpdateGoal } from '@/features/goals/api';
 import { GoalForm } from '@/features/goals/components/goal-form';
+import { computeGoalProgress } from '@/features/goals/progress';
 import { goalToFormValues } from '@/features/goals/schemas';
 import { usePartner } from '@/features/household/api';
+import { today } from '@/lib/date';
 import { useAuthStore } from '@/stores/auth-store';
 
 export default function EditGoalScreen() {
@@ -61,6 +63,7 @@ export default function EditGoalScreen() {
       defaultValues={goalToFormValues(current)}
       partnerName={partner?.name}
       shareLocked={!isOwner}
+      saved={computeGoalProgress(current, current.contributions, today()).saved}
       onSubmit={({ shared, ...values }) =>
         updateGoal.mutate(
           {
