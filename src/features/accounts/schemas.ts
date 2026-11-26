@@ -33,6 +33,8 @@ export const accountSchema = z
     /** Día de corte and día límite de pago (1–31), credit cards only. */
     statementDay: z.string().trim().optional(),
     paymentDueDay: z.string().trim().optional(),
+    /** Shared with the partner's household (only offered when there is a partner). */
+    shared: z.boolean().optional(),
   })
   .superRefine((values, ctx) => {
     if (values.type !== 'credit_card') return;
@@ -59,7 +61,7 @@ export const accountSchema = z
       }
     }
   })
-  .transform(({ creditLimit, institution, statementDay, paymentDueDay, ...values }) => {
+  .transform(({ creditLimit, institution, statementDay, paymentDueDay, shared, ...values }) => {
     const isCredit = values.type === 'credit_card';
     const hasInstitution = TYPES_WITH_INSTITUTION.includes(values.type);
     return {
@@ -70,6 +72,7 @@ export const accountSchema = z
       credit_limit: isCredit ? Number(normalizeAmount(creditLimit ?? '')) : null,
       statement_day: isCredit && statementDay ? Number(statementDay) : null,
       payment_due_day: isCredit && paymentDueDay ? Number(paymentDueDay) : null,
+      shared: shared ?? false,
     };
   });
 
@@ -87,5 +90,6 @@ export function accountToFormValues(account: Account): AccountFormInput {
     creditLimit: account.credit_limit != null ? account.credit_limit.toFixed(2) : '',
     statementDay: account.statement_day != null ? String(account.statement_day) : '',
     paymentDueDay: account.payment_due_day != null ? String(account.payment_due_day) : '',
+    shared: account.household_id != null,
   };
 }

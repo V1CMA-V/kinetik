@@ -14,7 +14,10 @@ import type { CreditCardStatement } from '@/features/accounts/credit-card';
 import { useCreditCardStatements } from '@/features/accounts/statements';
 import { type Transaction, useAccountTransactions } from '@/features/transactions/api';
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
+import { SharedBadge } from '@/features/household/components/shared-badge';
+import { usePartner } from '@/features/household/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { useAuthStore } from '@/stores/auth-store';
 import { formatDay, formatMonth, formatShortDate, monthRange, today } from '@/lib/date';
 import { useThemeColors } from '@/theme/colors';
 
@@ -27,6 +30,8 @@ export default function AccountDetailScreen() {
   const account = useAccount(id);
   const statements = useCreditCardStatements();
   const transactions = useAccountTransactions(id, month);
+  const myId = useAuthStore((s) => s.session?.user.id);
+  const { partner } = usePartner();
 
   const isCredit = account.data?.type === 'credit_card';
 
@@ -68,6 +73,7 @@ export default function AccountDetailScreen() {
   }
 
   const current = account.data;
+  const isMine = current.user_id === myId;
   const debt = Math.abs(Math.min(current.balance, 0));
   const statement = statements.statements[current.id];
   const maxFlow = Math.max(moneyIn, moneyOut);
@@ -97,14 +103,19 @@ export default function AccountDetailScreen() {
               >
                 {current.name}
               </Text>
-              <RoundButton
-                label="Editar cuenta"
-                onPress={() =>
-                  router.push({ pathname: '/accounts/[id]/edit', params: { id: current.id } })
-                }
-              >
-                <Icon ios="pencil" android="edit" color={colors.ink} size={20} />
-              </RoundButton>
+              {isMine ? (
+                <RoundButton
+                  label="Editar cuenta"
+                  onPress={() =>
+                    router.push({ pathname: '/accounts/[id]/edit', params: { id: current.id } })
+                  }
+                >
+                  <Icon ios="pencil" android="edit" color={colors.ink} size={20} />
+                </RoundButton>
+              ) : (
+                // Keeps the title centered.
+                <View className="h-11 w-11" />
+              )}
             </View>
 
             <View className="overflow-hidden rounded-card border border-line bg-card">
@@ -119,6 +130,9 @@ export default function AccountDetailScreen() {
                       .filter(Boolean)
                       .join(', ')}
                   </Text>
+                  {current.household_id ? (
+                    <SharedBadge owner={isMine ? null : (partner?.name ?? 'tu pareja')} />
+                  ) : null}
                   {isCredit && current.statement_day && current.payment_due_day ? (
                     <Text className="text-xs font-medium text-ink-muted">
                       Corte día {current.statement_day}, pago día {current.payment_due_day}
@@ -395,8 +409,7 @@ function CurrentPeriodCard({
         <View className="flex-1 gap-0.5">
           <Text className="text-base font-semibold text-ink">Corte en curso</Text>
           <Text className="text-sm text-ink-muted">
-            Cierra el {formatShortDate(s.nextCutDate)}, pagas antes del{' '}
-            {formatShortDate(p.dueDate)}
+            Cierra el {formatShortDate(s.nextCutDate)}, pagas antes del {formatShortDate(p.dueDate)}
           </Text>
         </View>
         <Text className="font-display text-xl font-bold tabular-nums text-ink">

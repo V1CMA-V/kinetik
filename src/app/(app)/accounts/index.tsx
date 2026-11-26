@@ -13,6 +13,7 @@ import { type AccountType, DEFAULT_CURRENCY } from '@/features/accounts/constant
 import { groupAccountsByInstitution } from '@/features/accounts/group';
 import { useCreditCardStatements } from '@/features/accounts/statements';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { useAuthStore } from '@/stores/auth-store';
 import { useThemeColors } from '@/theme/colors';
 
 type Filter = 'all' | 'debit' | 'investment' | 'credit';
@@ -30,6 +31,7 @@ export default function AccountsScreen() {
   const accounts = useAccounts();
   const statements = useCreditCardStatements();
   const archive = useArchiveAccount();
+  const myId = useAuthStore((s) => s.session?.user.id);
   const [filter, setFilter] = useState<Filter>('all');
 
   const all = useMemo(() => accounts.data ?? [], [accounts.data]);
@@ -195,7 +197,8 @@ export default function AccountsScreen() {
               account={item}
               statement={statements.statements[item.id]}
               onPress={() => router.push({ pathname: '/accounts/[id]', params: { id: item.id } })}
-              onLongPress={() => confirmArchive(item)}
+              // Only the owner can archive a shared account.
+              onLongPress={item.user_id === myId ? () => confirmArchive(item) : undefined}
             />
           </View>
         )}

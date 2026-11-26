@@ -3,7 +3,9 @@ import { Pressable, View } from 'react-native';
 import { groupedRowClass } from '@/components/ui/grouped';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { usePartner } from '@/features/household/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { useAuthStore } from '@/stores/auth-store';
 import { useThemeColors } from '@/theme/colors';
 
 import type { Transaction } from '../api';
@@ -20,11 +22,20 @@ type Props = {
   accountId?: string;
 };
 
-const accountLabel = (account: { name: string; institution: string | null } | null) =>
-  account ? [account.institution, account.name].filter(Boolean).join(' · ') : '—';
-
 export function TransactionRow({ transaction: t, onPress, onLongPress, accountId, group }: Props) {
   const formatAmount = useFormatMoney();
+  const myId = useAuthStore((s) => s.session?.user.id);
+  const { partner } = usePartner();
+  const partnerName = partner?.name ?? 'tu pareja';
+  // Registered by the partner on a shared account.
+  const byPartner = !!myId && t.user_id !== myId;
+
+  // RLS hides the partner's personal accounts (e.g. the source of a contribution).
+  const accountLabel = (account: { name: string; institution: string | null } | null) =>
+    account
+      ? [account.institution, account.name].filter(Boolean).join(' · ')
+      : `Cuenta de ${partnerName}`;
+
   const title =
     t.description ||
     t.category ||
@@ -97,6 +108,11 @@ export function TransactionRow({ transaction: t, onPress, onLongPress, accountId
         <Text numberOfLines={1} className="text-xs text-ink-muted">
           {subtitle}
         </Text>
+        {byPartner ? (
+          <Text numberOfLines={1} className="text-xs font-medium text-accent-ink">
+            Registró {partnerName}
+          </Text>
+        ) : null}
         {t.subscription_id ? (
           <View className="mt-1 self-start rounded-full bg-sunken px-2 py-0.5">
             <Text className="text-xs font-medium text-ink-muted">

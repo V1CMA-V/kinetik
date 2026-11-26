@@ -2,9 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { View } from 'react-native';
+import { Switch, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
+import { useThemeColors } from '@/theme/colors';
 import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,8 @@ type Props = {
   mode?: 'create' | 'edit';
   /** Extra actions below Guardar/Cancelar (e.g. archive). */
   children?: ReactNode;
+  /** Partner's name; shows the "Compartir" switch when set. */
+  partnerName?: string;
 };
 
 export function AccountForm({
@@ -44,7 +47,9 @@ export function AccountForm({
   error,
   mode = 'create',
   children,
+  partnerName,
 }: Props) {
+  const colors = useThemeColors();
   const { control, handleSubmit, formState } = useForm<
     AccountFormInput,
     unknown,
@@ -200,6 +205,32 @@ export function AccountForm({
               Lo encuentras en tu estado de cuenta. Te diremos cuánto pagar y antes de qué fecha.
             </Text>
           </View>
+        ) : null}
+
+        {partnerName ? (
+          <Controller
+            control={control}
+            name="shared"
+            render={({ field: { value, onChange } }) => (
+              <View className="flex-row items-center gap-3 rounded-xl border border-line bg-card px-4 py-3">
+                <View className="flex-1 gap-0.5">
+                  <Text className="text-base font-semibold text-ink">
+                    Compartir con {partnerName}
+                  </Text>
+                  <Text className="text-xs text-ink-muted">
+                    Verá el saldo y los movimientos, y podrá registrar los suyos.
+                  </Text>
+                </View>
+                <Switch
+                  accessibilityLabel={`Compartir con ${partnerName}`}
+                  value={!!value}
+                  onValueChange={onChange}
+                  trackColor={{ false: colors.outline, true: colors.accent }}
+                  thumbColor={colors.card}
+                />
+              </View>
+            )}
+          />
         ) : null}
 
         {error ? <Text className="text-sm text-expense">{error}</Text> : null}

@@ -1,7 +1,10 @@
 import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
+import { usePartner } from '@/features/household/api';
+import { SharedBadge } from '@/features/household/components/shared-badge';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { useAuthStore } from '@/stores/auth-store';
 import { formatShortDate } from '@/lib/date';
 
 import type { Account } from '../api';
@@ -29,6 +32,8 @@ type Props = {
 
 export function AccountCard({ account, statement, onPress, onLongPress }: Props) {
   const formatAmount = useFormatMoney();
+  const myId = useAuthStore((s) => s.session?.user.id);
+  const { partner } = usePartner();
   const isCredit = account.type === 'credit_card';
   const debt = Math.abs(Math.min(account.balance, 0));
   const limit = isCredit && account.credit_limit ? account.credit_limit : null;
@@ -48,11 +53,16 @@ export function AccountCard({ account, statement, onPress, onLongPress }: Props)
             {ACCOUNT_TYPE_SHORT[account.type]}
           </Text>
         </View>
-        {account.institution ? (
-          <Text numberOfLines={1} className="flex-shrink text-xs text-ink-muted">
-            {account.institution}
-          </Text>
-        ) : null}
+        <View className="flex-shrink flex-row items-center gap-2">
+          {account.household_id ? (
+            <SharedBadge owner={account.user_id === myId ? null : (partner?.name ?? 'tu pareja')} />
+          ) : null}
+          {account.institution ? (
+            <Text numberOfLines={1} className="flex-shrink text-xs text-ink-muted">
+              {account.institution}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       <View className="flex-row items-center justify-between gap-3">

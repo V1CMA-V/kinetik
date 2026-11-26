@@ -15,6 +15,7 @@ export type Database = {
           created_at: string;
           credit_limit: number | null;
           currency: string;
+          household_id: string | null;
           id: string;
           institution: string | null;
           is_active: boolean;
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string;
           credit_limit?: number | null;
           currency?: string;
+          household_id?: string | null;
           id?: string;
           institution?: string | null;
           is_active?: boolean;
@@ -45,6 +47,7 @@ export type Database = {
           created_at?: string;
           credit_limit?: number | null;
           currency?: string;
+          household_id?: string | null;
           id?: string;
           institution?: string | null;
           is_active?: boolean;
@@ -55,7 +58,15 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'accounts_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       budgets: {
         Row: {
@@ -81,6 +92,109 @@ export type Database = {
           id?: string;
           updated_at?: string;
           user_id?: string;
+        };
+        Relationships: [];
+      };
+      household_invites: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string;
+          expires_at: string;
+          household_id: string;
+          used_at: string | null;
+          used_by: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by: string;
+          expires_at: string;
+          household_id: string;
+          used_at?: string | null;
+          used_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string;
+          expires_at?: string;
+          household_id?: string;
+          used_at?: string | null;
+          used_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'household_invites_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      household_members: {
+        Row: {
+          household_id: string;
+          joined_at: string;
+          role: string;
+          user_id: string;
+        };
+        Insert: {
+          household_id: string;
+          joined_at?: string;
+          role: string;
+          user_id: string;
+        };
+        Update: {
+          household_id?: string;
+          joined_at?: string;
+          role?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'household_members_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      households: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+        };
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          display_name: string | null;
+          id: string;
+          updated_at: string;
+        };
+        Insert: {
+          display_name?: string | null;
+          id: string;
+          updated_at?: string;
+        };
+        Update: {
+          display_name?: string | null;
+          id?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -215,6 +329,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_household_invite: { Args: { p_code: string }; Returns: string };
+      can_access_account: { Args: { p_account_id: string }; Returns: boolean };
+      create_household_invite: {
+        Args: never;
+        Returns: {
+          code: string;
+          expires_at: string;
+        }[];
+      };
+      is_household_member: {
+        Args: { p_household_id: string };
+        Returns: boolean;
+      };
+      is_partner: { Args: { p_user_id: string }; Returns: boolean };
+      leave_household: { Args: never; Returns: undefined };
       process_due_subscriptions: { Args: { p_today: string }; Returns: number };
       subscription_charge_date: {
         Args: {

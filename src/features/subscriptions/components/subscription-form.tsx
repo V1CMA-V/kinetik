@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useMemo } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
@@ -14,6 +14,7 @@ import { type Account, useAccounts } from '@/features/accounts/api';
 import { AccountSelect } from '@/features/transactions/components/account-select';
 import { DateField } from '@/features/transactions/components/date-field';
 import { today } from '@/lib/date';
+import { useAuthStore } from '@/stores/auth-store';
 
 import { FREQUENCIES, FREQUENCY_ORDER, POPULAR_SERVICES } from '../constants';
 import {
@@ -38,6 +39,12 @@ type Props = {
 /** Waits for the accounts so the card preselection runs against the real list. */
 export function SubscriptionForm(props: Props) {
   const accounts = useAccounts();
+  const myId = useAuthStore((s) => s.session?.user.id);
+  // Subscriptions can only be charged to your own accounts, not the ones your partner shares.
+  const ownAccounts = useMemo(
+    () => accounts.data?.filter((a) => a.user_id === myId),
+    [accounts.data, myId],
+  );
 
   if (accounts.isPending) {
     return (
@@ -47,7 +54,7 @@ export function SubscriptionForm(props: Props) {
     );
   }
 
-  if (!accounts.data?.length) {
+  if (!ownAccounts?.length) {
     return (
       <Screen className="justify-center gap-4">
         <Text className="text-center text-base text-ink-muted">
@@ -59,7 +66,7 @@ export function SubscriptionForm(props: Props) {
     );
   }
 
-  return <SubscriptionFields {...props} accounts={accounts.data} />;
+  return <SubscriptionFields {...props} accounts={ownAccounts} />;
 }
 
 function SubscriptionFields({

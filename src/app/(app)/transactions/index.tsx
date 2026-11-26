@@ -16,6 +16,7 @@ import {
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatDay, formatMonth, monthRange, today } from '@/lib/date';
+import { useAuthStore } from '@/stores/auth-store';
 import { useThemeColors } from '@/theme/colors';
 
 export default function TransactionsScreen() {
@@ -24,6 +25,7 @@ export default function TransactionsScreen() {
 
   const transactions = useMonthTransactions(month);
   const remove = useDeleteTransaction();
+  const myId = useAuthStore((s) => s.session?.user.id);
 
   const { sections, income, expense } = useMemo(() => {
     const byDay = new Map<string, Transaction[]>();
@@ -115,7 +117,8 @@ export default function TransactionsScreen() {
             transaction={item}
             group={{ index, count: section.data.length }}
             onPress={() => router.push({ pathname: '/transactions/[id]', params: { id: item.id } })}
-            onLongPress={() => confirmDelete(item)}
+            // Each person deletes only the movements they registered.
+            onLongPress={item.user_id === myId ? () => confirmDelete(item) : undefined}
           />
         )}
         ListEmptyComponent={
