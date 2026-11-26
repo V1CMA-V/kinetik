@@ -7,7 +7,15 @@
  * - Funds are bank, cash or investment accounts; by default bank and cash count,
  *   investments don't. `overrides` turns single accounts on or off.
  * - Only `currency` amounts are added up; other currencies are left out.
+ * - Income (optional) is projected conservatively: only the schedule's fixed pay
+ *   counts, never variable income. A payday counts toward a card payment only when
+ *   `today < payday < dueDate`: pay landing today is assumed to be in the balance
+ *   already, and pay landing on the due date itself is NOT counted (it may arrive
+ *   too late to make the payment on time).
  */
+import { type IncomeSchedule, nextPayday, paydaysBetween } from '@/features/income/schedule';
+import { addDays, today as todayISO } from '@/lib/date';
+
 import type { AccountType } from './constants';
 import type { CardSummary } from './statements';
 
@@ -32,6 +40,13 @@ export type CoveredPayment = {
   /** Money still left after paying this card and every card due before it (negative = short). */
   leftAfter: number;
   covered: boolean;
+  /** Fixed income landing after today and before this due date (0 without income). */
+  incomeBefore: number;
+  /** leftAfter + incomeBefore (negative = short even with your pay). */
+  leftAfterWithIncome: number;
+  coveredWithIncome: boolean;
+  /** Earliest payday after which this payment is covered, when today's money alone isn't enough. */
+  coveringPayday: string | null;
 };
 
 export type FundRow = FundAccount & { included: boolean };
@@ -48,6 +63,14 @@ export type PaymentCoverage = {
   nextTotal: number;
   /** available - dueTotal - nextTotal. */
   balanceWithNext: number;
+  /** First payday after today (null without income). */
+  nextPayday: string | null;
+  /** Paydays after today and before the last due date. */
+  paydaysUntilLastDue: string[];
+  /** Fixed income of `paydaysUntilLastDue`. */
+  incomeUntilLastDue: number;
+  /** available + incomeUntilLastDue - dueTotal. */
+  balanceWithIncome: number;
 };
 
 const FUND_TYPES: AccountType[] = ['bank_account', 'cash', 'investment'];
@@ -66,11 +89,17 @@ export function computePaymentCoverage({
   accounts,
   overrides,
   currency,
+  income = null,
+  today = todayISO(),
 }: {
   cards: CardSummary[];
   accounts: FundAccount[];
   overrides: FundOverrides;
   currency: string;
+  /** Fixed pay schedule to project with; null/omitted = only today's money. */
+  income?: IncomeSchedule | null;
+  /** `YYYY-MM-DD`; defaults to the device's date. */
+  today?: string;
 }): PaymentCoverage {
   const funds: FundRow[] = accounts
     .filter((a) => FUND_TYPES.includes(a.type) && a.currency === currency)
@@ -81,8 +110,7 @@ export function computePaymentCoverage({
   );
 
   const sameCurrency = cards.filter((c) => c.currency === currency);
-  let left = available;
-  const payments: CoveredPayment[] = sameCurrency
+  const pending = sameCurrency
     .filter((c) => !c.statement.isPaid)
     .map((c) => ({
       accountId: c.accountId,
@@ -92,16 +120,44 @@ export function computePaymentCoverage({
       dueDate: c.statement.dueDate,
       daysUntilDue: c.statement.daysUntilDue,
     }))
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || b.amount - a.amount)
-    .map((p) => {
-      left = round2(left - p.amount);
-      return { ...p, leftAfter: left, covered: left >= 0 };
-    });
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || b.amount - a.amount);
+
+  // Strictly after today and strictly before the last due date (see header).
+  const lastDue = pending.at(-1)?.dueDate;
+  const payAmount = income && income.pay_amount > 0 ? income.pay_amount : 0;
+  const paydays =
+    income && payAmount && lastDue
+      ? paydaysBetween(income, addDays(today, 1), addDays(lastDue, -1))
+      : [];
+
+  let left = available;
+  const payments: CoveredPayment[] = pending.map((p) => {
+    left = round2(left - p.amount);
+    const before = paydays.filter((d) => d < p.dueDate);
+    const incomeBefore = round2(before.length * payAmount);
+    const leftAfterWithIncome = round2(left + incomeBefore);
+    const covered = left >= 0;
+    const coveredWithIncome = leftAfterWithIncome >= 0;
+    const coveringPayday =
+      !covered && coveredWithIncome
+        ? (before.find((_, i) => round2(left + (i + 1) * payAmount) >= 0) ?? null)
+        : null;
+    return {
+      ...p,
+      leftAfter: left,
+      covered,
+      incomeBefore,
+      leftAfterWithIncome,
+      coveredWithIncome,
+      coveringPayday,
+    };
+  });
 
   const dueTotal = round2(payments.reduce((sum, p) => sum + p.amount, 0));
   const nextTotal = round2(
     sameCurrency.reduce((sum, c) => sum + c.statement.currentPeriod.total, 0),
   );
+  const incomeUntilLastDue = round2(paydays.length * payAmount);
 
   return {
     payments,
@@ -111,5 +167,9 @@ export function computePaymentCoverage({
     balance: round2(available - dueTotal),
     nextTotal,
     balanceWithNext: round2(available - dueTotal - nextTotal),
+    nextPayday: income && payAmount ? nextPayday(income, addDays(today, 1)) : null,
+    paydaysUntilLastDue: paydays,
+    incomeUntilLastDue,
+    balanceWithIncome: round2(available + incomeUntilLastDue - dueTotal),
   };
 }

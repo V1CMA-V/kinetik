@@ -6,7 +6,7 @@ import { groupedRowClass } from '@/components/ui/grouped';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { ACCOUNT_TYPES } from '@/features/accounts/constants';
-import type { PaymentCoverage } from '@/features/accounts/payment-coverage';
+import type { CoveredPayment, PaymentCoverage } from '@/features/accounts/payment-coverage';
 import { usePaymentCoverage } from '@/features/accounts/use-payment-coverage';
 import { Section, SwitchRow } from '@/features/profile/components/settings';
 import { useFormatMoney } from '@/hooks/use-format-money';
@@ -20,8 +20,48 @@ function dueLabel(days: number, dueDate: string) {
   return `Vence el ${formatShortDate(dueDate)}, en ${days} días`;
 }
 
+/** "Con tu pago del 30 nov" / "Con tus 2 pagos hasta el 15 dic". */
+function paydaysLabel(paydays: string[]) {
+  const last = formatShortDate(paydays[paydays.length - 1]);
+  return paydays.length === 1
+    ? `Con tu pago del ${last}`
+    : `Con tus ${paydays.length} pagos hasta el ${last}`;
+}
+
+/** Projection to the last due date counting the fixed pay that lands before it. */
+function IncomeProjection({ coverage }: { coverage: PaymentCoverage }) {
+  const formatAmount = useFormatMoney();
+  const { paydaysUntilLastDue: paydays, balanceWithIncome, nextPayday } = coverage;
+
+  if (!paydays.length) {
+    return nextPayday ? (
+      <Text className="border-t border-surface/15 pt-3 text-xs font-medium text-surface/70">
+        Tu siguiente pago llega el {formatShortDate(nextPayday)}, después de tus vencimientos.
+      </Text>
+    ) : null;
+  }
+
+  const enough = balanceWithIncome >= 0;
+  const label = `${paydaysLabel(paydays)} te ${enough ? 'sobran' : 'faltan'}`;
+  const amount = formatAmount(Math.abs(balanceWithIncome));
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${label} ${amount}`}
+      className="flex-row items-baseline justify-between gap-3 border-t border-surface/15 pt-3"
+    >
+      <Text className="flex-1 text-xs font-medium text-surface/70">{label}</Text>
+      <Text
+        className={`text-base font-bold tabular-nums ${enough ? 'text-surface' : 'text-accent'}`}
+      >
+        {amount}
+      </Text>
+    </View>
+  );
+}
+
 /** Due total vs. available money, with a bar of how much of it is covered. */
-function CoverageHero({ coverage }: { coverage: PaymentCoverage }) {
+function CoverageHero({ coverage, hasIncome }: { coverage: PaymentCoverage; hasIncome: boolean }) {
   const formatAmount = useFormatMoney();
   const { dueTotal, available, balance } = coverage;
   const enough = balance >= 0;
@@ -71,17 +111,49 @@ function CoverageHero({ coverage }: { coverage: PaymentCoverage }) {
             </Text>
           </View>
         </View>
+        {hasIncome && dueTotal > 0 ? <IncomeProjection coverage={coverage} /> : null}
       </View>
     </View>
   );
 }
 
+/** Hint under a card payment about how your fixed pay changes it. */
+function IncomeHint({ payment, paydays }: { payment: CoveredPayment; paydays: string[] }) {
+  const formatAmount = useFormatMoney();
+  if (payment.covered) return null;
+  if (payment.coveringPayday) {
+    return (
+      <Text numberOfLines={1} className="text-xs font-medium text-warning">
+        Lo cubres con tu pago del {formatShortDate(payment.coveringPayday)}
+      </Text>
+    );
+  }
+  if (payment.incomeBefore > 0) {
+    const several = paydays.filter((d) => d < payment.dueDate).length > 1;
+    return (
+      <Text numberOfLines={1} className="text-xs font-medium tabular-nums text-expense">
+        Te faltan {formatAmount(Math.min(payment.amount, -payment.leftAfterWithIncome))} aún con{' '}
+        {several ? 'tus pagos' : 'tu pago'}
+      </Text>
+    );
+  }
+  return null;
+}
+
 export default function PaymentsScreen() {
   const formatAmount = useFormatMoney();
   const colors = useThemeColors();
-  const { coverage, setPaymentFund, isPending, isRefetching, error, refetch } =
-    usePaymentCoverage();
-  const { payments, funds, nextTotal, balanceWithNext } = coverage;
+  const {
+    coverage,
+    setPaymentFund,
+    hasIncome,
+    incomeKnown,
+    isPending,
+    isRefetching,
+    error,
+    refetch,
+  } = usePaymentCoverage();
+  const { payments, funds, nextTotal, balanceWithNext, paydaysUntilLastDue } = coverage;
 
   return (
     <Screen className="pt-4">
@@ -110,7 +182,27 @@ export default function PaymentsScreen() {
           <Text className="mt-8 text-center text-expense">{error.message}</Text>
         ) : (
           <>
-            <CoverageHero coverage={coverage} />
+            <CoverageHero coverage={coverage} hasIncome={hasIncome} />
+
+            {incomeKnown && !hasIncome && payments.length ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Agrega tu ingreso para proyectar con tus quincenas"
+                onPress={() => router.push('/profile/income')}
+                className="flex-row items-center gap-3 rounded-card border border-line bg-card px-4 py-3.5 active:opacity-80"
+              >
+                <Icon ios="banknote" android="payments" color={colors['ink-muted']} size={20} />
+                <Text className="flex-1 text-sm font-medium text-ink">
+                  Agrega tu ingreso para proyectar con tus quincenas
+                </Text>
+                <Icon
+                  ios="chevron.right"
+                  android="chevron_right"
+                  color={colors['ink-muted']}
+                  size={18}
+                />
+              </Pressable>
+            ) : null}
 
             <View className="gap-3">
               <Text className="text-lg font-bold text-ink">Cortes por pagar</Text>
@@ -126,7 +218,7 @@ export default function PaymentsScreen() {
                       className={`flex-row items-center gap-3 px-4 py-3.5 active:opacity-80 ${groupedRowClass(i, payments.length)}`}
                     >
                       <View
-                        className={`h-2.5 w-2.5 rounded-full ${p.covered ? 'bg-income' : 'bg-expense'}`}
+                        className={`h-2.5 w-2.5 rounded-full ${p.covered ? 'bg-income' : p.coveredWithIncome ? 'bg-warning' : 'bg-expense'}`}
                       />
                       <View className="flex-1 gap-0.5">
                         <Text numberOfLines={1} className="text-base font-semibold text-ink">
@@ -138,6 +230,7 @@ export default function PaymentsScreen() {
                         >
                           {dueLabel(p.daysUntilDue, p.dueDate)}
                         </Text>
+                        <IncomeHint payment={p} paydays={paydaysUntilLastDue} />
                       </View>
                       <View className="items-end gap-0.5">
                         <Text className="text-base font-bold tabular-nums text-ink">
@@ -165,6 +258,9 @@ export default function PaymentsScreen() {
               {payments.length ? (
                 <Text className="text-xs text-ink-muted">
                   En orden de vencimiento: con tu dinero vas pagando una tarjeta tras otra.
+                  {hasIncome
+                    ? ' Tu pago solo cuenta si llega antes del día límite, no el mismo día.'
+                    : ''}
                 </Text>
               ) : null}
             </View>
