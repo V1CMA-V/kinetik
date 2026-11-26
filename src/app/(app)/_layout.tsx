@@ -1,14 +1,18 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useEffect } from 'react';
 
+import { useRealtimeSync } from '@/features/household/use-realtime-sync';
+import { usePushRegistration } from '@/features/notifications/push';
 import { useReminderScheduler } from '@/features/notifications/use-reminder-scheduler';
 import { useProcessDueSubscriptions } from '@/features/subscriptions/api';
+import { useAuthStore } from '@/stores/auth-store';
 import { useThemeColors } from '@/theme/colors';
 import { useWidgetSync } from '@/widgets/use-widget-sync';
 
 export default function AppLayout() {
   const colors = useThemeColors();
   const { mutate: processDueSubscriptions } = useProcessDueSubscriptions();
+  const userId = useAuthStore((s) => s.session?.user.id);
 
   // Register subscription charges that came due since the last time the app was opened.
   useEffect(() => {
@@ -20,6 +24,12 @@ export default function AppLayout() {
 
   // Keeps the Android home-screen widget (month spending) up to date.
   useWidgetSync();
+
+  // Live updates of shared accounts (movements registered by your partner).
+  useRealtimeSync();
+
+  // Registers this phone for push notifications (partner activity).
+  usePushRegistration(userId);
 
   return (
     <NativeTabs

@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/auth-store';
 
 export const householdKeys = {
   all: ['household'] as const,
+  partnerNotifications: (userId: string) =>
+    [...householdKeys.all, 'partner-notifications', userId] as const,
 };
 
 export type HouseholdMember = {
@@ -128,5 +130,46 @@ export function useLeaveHousehold() {
     },
     // Shared accounts stop being visible on both sides.
     onSuccess: () => queryClient.invalidateQueries(),
+  });
+}
+
+/** Whether to get a push when the partner registers a movement on a shared account. */
+export function usePartnerNotifications() {
+  const myId = useAuthStore((s) => s.session?.user.id);
+
+  return useQuery({
+    queryKey: householdKeys.partnerNotifications(myId ?? ''),
+    enabled: !!myId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('notify_partner_activity')
+        .eq('id', myId!)
+        .maybeSingle();
+      if (error) throw error;
+      // No profile row yet: the server default (on) applies.
+      return data?.notify_partner_activity ?? true;
+    },
+  });
+}
+
+export function useSetPartnerNotifications() {
+  const queryClient = useQueryClient();
+  const myId = useAuthStore((s) => s.session?.user.id);
+
+  return useMutation({
+    mutationFn: async (enabled: boolean) => {
+      if (!myId) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
+      const { error } = await supabase
+        .from('profiles')
+        .update({ notify_partner_activity: enabled })
+        .eq('id', myId);
+      if (error) throw new Error('No se pudo guardar la preferencia. Inténtalo de nuevo.');
+    },
+    onMutate: (enabled) => {
+      if (myId) queryClient.setQueryData(householdKeys.partnerNotifications(myId), enabled);
+    },
+    onSettled: () =>
+      myId && queryClient.invalidateQueries({ queryKey: householdKeys.partnerNotifications(myId) }),
   });
 }

@@ -5,6 +5,11 @@ import { alert } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
 import { Chip } from '@/components/ui/chip';
 import {
+  usePartner,
+  usePartnerNotifications,
+  useSetPartnerNotifications,
+} from '@/features/household/api';
+import {
   useNotificationPermission,
   useNotificationPermissionStore,
 } from '@/features/notifications/permission';
@@ -16,7 +21,7 @@ import { Section, SwitchRow } from './settings';
 function showPermissionDeniedAlert() {
   alert(
     'Notificaciones desactivadas',
-    'Para recibir recordatorios, permite las notificaciones de Kinetik en los ajustes de tu teléfono.',
+    'Para recibir avisos, permite las notificaciones de Kinetik en los ajustes de tu teléfono.',
     [
       { text: 'Ahora no', style: 'cancel' },
       { text: 'Abrir ajustes', onPress: () => Linking.openSettings() },
@@ -64,6 +69,7 @@ export function NotificationsSection() {
 
   return (
     <Section title="Notificaciones">
+      <PartnerActivityRow />
       <SwitchRow
         label="Recordatorios"
         icon={{ ios: 'bell', android: 'notifications' }}
@@ -104,5 +110,49 @@ export function NotificationsSection() {
         </>
       ) : null}
     </Section>
+  );
+}
+
+/** Push when the partner registers a movement on a shared account (only with a partner). */
+function PartnerActivityRow() {
+  const { partner } = usePartner();
+  const preference = usePartnerNotifications();
+  const setPreference = useSetPartnerNotifications();
+  const permission = useNotificationPermission();
+  const requestPermission = useNotificationPermissionStore((s) => s.request);
+  const [busy, setBusy] = useState(false);
+
+  if (!partner || !notificationsSupported) return null;
+
+  const granted = permission === 'granted';
+  const value = granted && (preference.data ?? true);
+
+  const onToggle = async (next: boolean) => {
+    if (next && !granted) {
+      setBusy(true);
+      const result = await requestPermission();
+      setBusy(false);
+      if (result !== 'granted') {
+        showPermissionDeniedAlert();
+        return;
+      }
+    }
+    setPreference.mutate(next);
+  };
+
+  return (
+    <SwitchRow
+      label={`Movimientos de ${partner.name}`}
+      icon={{ ios: 'person.2', android: 'group' }}
+      description={
+        setPreference.error?.message ??
+        (granted
+          ? 'Cuando registre algo en una cuenta compartida'
+          : 'Permite las notificaciones para recibir estos avisos')
+      }
+      value={value}
+      onValueChange={onToggle}
+      disabled={busy || preference.isPending || setPreference.isPending}
+    />
   );
 }

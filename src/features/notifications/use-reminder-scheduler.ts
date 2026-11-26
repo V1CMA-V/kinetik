@@ -106,10 +106,18 @@ function useReminderNavigation() {
 
   useEffect(() => {
     if (!response || response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
-    const kind = response.notification.request.content.data?.kind;
-    if (kind !== 'card' && kind !== 'subscription') return;
+    const data = response.notification.request.content.data;
+    const kind = data?.kind;
+    if (kind !== 'card' && kind !== 'subscription' && kind !== 'partner-transaction') return;
     // Handle each tap once (the layout remounts after signing in again).
     Notifications.clearLastNotificationResponse();
+    if (kind === 'partner-transaction') {
+      // Push from the notify-partner Edge Function: open the movement.
+      if (typeof data?.transactionId === 'string') {
+        router.navigate({ pathname: '/transactions/[id]', params: { id: data.transactionId } });
+      }
+      return;
+    }
     router.navigate(kind === 'card' ? '/accounts' : '/transactions/subscriptions');
   }, [response]);
 }
