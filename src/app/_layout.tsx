@@ -80,6 +80,8 @@ export default function RootLayout() {
               <Stack.Protected guard={!session} redirectTo="/">
                 <Stack.Screen name="(auth)" />
               </Stack.Protected>
+              {/* Readable with or without a session (sign-in and Profile link to it). */}
+              <Stack.Screen name="privacy-policy" options={{ presentation: 'modal' }} />
             </Stack>
             <QuickActionsHandler />
             <AppLock />

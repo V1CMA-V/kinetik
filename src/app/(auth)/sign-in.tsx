@@ -125,6 +125,17 @@ export default function SignInScreen() {
             onPress={() => handleSubmit((values) => signUp.mutate(values))()}
           />
         </View>
+
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push('/privacy-policy')}
+          className="self-center active:opacity-60"
+        >
+          <Text className="text-center text-xs text-ink-muted">
+            Al continuar aceptas el{' '}
+            <Text className="text-xs font-semibold text-accent-ink">Aviso de privacidad</Text>
+          </Text>
+        </Pressable>
       </FormScrollView>
     </Screen>
   );
