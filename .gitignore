@@ -47,3 +47,6 @@ example
 .claude/
 .agents/
 skills-lock.json
+
+# test coverage
+coverage/
