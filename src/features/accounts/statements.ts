@@ -20,6 +20,14 @@ export type CardPayment = {
   daysUntilDue: number;
 };
 
+export type CardSummary = {
+  accountId: string;
+  name: string;
+  institution: string | null;
+  currency: string;
+  statement: CreditCardStatement;
+};
+
 /**
  * Statement summaries of the active credit cards, keyed by account id. Cards
  * without día de corte / día límite de pago map to `null`. Uses one query for
@@ -88,9 +96,30 @@ export function useCreditCardStatements() {
     [cards, statements],
   );
 
+  /** Every configured card with its statement, next payment first (for the Home dashboard). */
+  const cardSummaries = useMemo<CardSummary[]>(() => {
+    const nextDue = (s: CreditCardStatement) => (s.isPaid ? s.currentPeriod.dueDate : s.dueDate);
+    return cards
+      .flatMap((card) => {
+        const statement = statements[card.id];
+        if (!statement) return [];
+        return [
+          {
+            accountId: card.id,
+            name: card.name,
+            institution: card.institution,
+            currency: card.currency,
+            statement,
+          },
+        ];
+      })
+      .sort((a, b) => nextDue(a.statement).localeCompare(nextDue(b.statement)));
+  }, [cards, statements]);
+
   return {
     statements,
     upcomingPayments,
+    cardSummaries,
     isPending: accounts.isPending || (cardIds.length > 0 && transactions.isPending),
     error: accounts.error ?? transactions.error,
     // `refetch` ignores `enabled`, and an empty `in.()` filter is invalid.

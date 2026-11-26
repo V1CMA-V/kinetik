@@ -3,20 +3,22 @@ import { Pressable, View } from 'react-native';
 
 import { groupedRowClass } from '@/components/ui/grouped';
 import { Text } from '@/components/ui/text';
-import type { CardPayment } from '@/features/accounts/statements';
+import type { CardSummary } from '@/features/accounts/statements';
 import { useFormatMoney } from '@/hooks/use-format-money';
-import { formatDay } from '@/lib/date';
+import { formatDay, formatShortDate } from '@/lib/date';
 
 import { HomeCard, HomeSection } from './home-section';
 
 type Props = {
-  payments: CardPayment[];
+  cards: CardSummary[];
   /** Credit cards without día de corte / día límite de pago. */
   unconfiguredCards: number;
 };
 
 /** Cards whose due date is this close (or closer) are highlighted. */
 const SOON_DAYS = 5;
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 function dueLabel(days: number) {
   if (days < 0) return days === -1 ? 'Venció ayer' : `Venció hace ${-days} días`;
@@ -31,49 +33,71 @@ function dueColor(days: number) {
   return 'text-ink-muted';
 }
 
-export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
+/** Per card: what's due from the closed statement and what the statement in progress adds up to. */
+export function UpcomingPayments({ cards, unconfiguredCards }: Props) {
   const formatAmount = useFormatMoney();
-  const total = payments.reduce((sum, p) => sum + p.amount, 0);
+  const pendingTotal = round2(
+    cards.reduce((sum, c) => sum + (c.statement.isPaid ? 0 : c.statement.remainingToPay), 0),
+  );
+  const currentTotal = round2(cards.reduce((sum, c) => sum + c.statement.currentPeriod.total, 0));
 
   return (
     <HomeSection
       title="Pagos de tarjetas"
-      aside={payments.length > 1 ? `Total ${formatAmount(total)}` : undefined}
+      aside={pendingTotal > 0 ? `Por pagar ${formatAmount(pendingTotal)}` : undefined}
     >
-      {payments.length ? (
+      {cards.length ? (
         <View>
-          {payments.map((p, i) => {
-            const overdue = p.daysUntilDue < 0;
+          {cards.map((c, i) => {
+            const s = c.statement;
+            const pending = !s.isPaid;
+            const overdue = pending && s.daysUntilDue < 0;
             return (
               <Pressable
-                key={p.accountId}
+                key={c.accountId}
                 accessibilityRole="button"
                 onPress={() =>
-                  router.push({ pathname: '/accounts/[id]', params: { id: p.accountId } })
+                  router.push({ pathname: '/accounts/[id]', params: { id: c.accountId } })
                 }
-                className={`flex-row items-center gap-3 px-4 py-3.5 active:opacity-80 ${groupedRowClass(i, payments.length)}`}
+                className={`flex-row items-center gap-3 px-4 py-3.5 active:opacity-80 ${groupedRowClass(i, cards.length)}`}
               >
                 <View className="flex-1 gap-0.5">
                   <Text numberOfLines={1} className="text-base font-semibold text-ink">
-                    {p.name}
+                    {c.name}
                   </Text>
-                  <Text
-                    numberOfLines={1}
-                    className={`text-xs font-medium ${dueColor(p.daysUntilDue)}`}
-                  >
-                    {dueLabel(p.daysUntilDue)}
-                    {Math.abs(p.daysUntilDue) > 1 ? `, ${formatDay(p.dueDate).toLowerCase()}` : ''}
-                  </Text>
-                  {p.institution ? (
-                    <Text numberOfLines={1} className="text-xs text-ink-muted">
-                      {p.institution}
+                  {pending ? (
+                    <Text
+                      numberOfLines={1}
+                      className={`text-xs font-medium ${dueColor(s.daysUntilDue)}`}
+                    >
+                      {dueLabel(s.daysUntilDue)}
+                      {Math.abs(s.daysUntilDue) > 1
+                        ? `, ${formatDay(s.dueDate).toLowerCase()}`
+                        : ''}
                     </Text>
-                  ) : null}
+                  ) : (
+                    <Text numberOfLines={1} className="text-xs font-medium text-income">
+                      {s.statementAmount > 0 ? 'Corte pagado' : 'Sin pago pendiente'}
+                    </Text>
+                  )}
+                  <Text numberOfLines={1} className="text-xs tabular-nums text-ink-muted">
+                    Corte en curso: {formatAmount(s.currentPeriod.total, c.currency)}, cierra el{' '}
+                    {formatShortDate(s.nextCutDate)}
+                  </Text>
                 </View>
                 <View className="items-end gap-1">
-                  <Text className="text-base font-bold tabular-nums text-ink">
-                    {formatAmount(p.amount, p.currency)}
-                  </Text>
+                  {pending ? (
+                    <Text className="text-base font-bold tabular-nums text-ink">
+                      {formatAmount(s.remainingToPay, c.currency)}
+                    </Text>
+                  ) : (
+                    <>
+                      <Text className="text-base font-semibold tabular-nums text-ink-muted">
+                        {formatAmount(s.currentPeriod.total, c.currency)}
+                      </Text>
+                      <Text className="text-xs text-ink-muted">al corte</Text>
+                    </>
+                  )}
                   {overdue ? (
                     <View className="rounded-full bg-expense-soft px-2 py-0.5">
                       <Text className="text-xs font-semibold text-expense">Vencido</Text>
@@ -92,6 +116,11 @@ export function UpcomingPayments({ payments, unconfiguredCards }: Props) {
           </Text>
         </HomeCard>
       )}
+      {cards.length ? (
+        <Text className="text-xs tabular-nums text-ink-muted">
+          Tus cortes en curso suman {formatAmount(currentTotal)}
+        </Text>
+      ) : null}
       {unconfiguredCards > 0 ? (
         <Pressable accessibilityRole="button" onPress={() => router.push('/accounts')}>
           <Text className="text-xs text-ink-muted">

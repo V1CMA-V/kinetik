@@ -90,7 +90,7 @@ export default function HomeScreen() {
   };
 
   const error = accounts.error ?? statements.error ?? spending.error ?? transactions.error;
-  const showPayments = statements.upcomingPayments.length > 0 || unconfiguredCards > 0;
+  const showPayments = statements.cardSummaries.length > 0 || unconfiguredCards > 0;
 
   return (
     <Screen>
@@ -122,7 +122,7 @@ export default function HomeScreen() {
 
             {cards.length && showPayments ? (
               <UpcomingPayments
-                payments={statements.upcomingPayments}
+                cards={statements.cardSummaries}
                 unconfiguredCards={unconfiguredCards}
               />
             ) : null}
