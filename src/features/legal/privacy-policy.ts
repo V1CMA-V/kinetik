@@ -24,6 +24,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     items: [
       'Datos de tu cuenta: correo electrónico, nombre (opcional) y contraseña cifrada. Si entras con Google, recibimos tu nombre, tu correo y tu identificador de Google.',
       'Información financiera que tú registras: cuentas (nombre, tipo, banco, saldo, límite de crédito, día de corte y de pago), movimientos (monto, categoría, descripción y fecha), suscripciones, presupuestos y metas de ahorro.',
+      'Si decides agregarlos, tus datos de ingreso: cuánto te llega por pago, cada cuánto y qué días te pagan, la cuenta donde te depositan y un estimado de ingresos extra. Son opcionales, solo tú los ves (tu pareja no) y puedes borrarlos cuando quieras desde Perfil > Mis ingresos. Los movimientos de ingreso que registres en una cuenta compartida sí los ve tu pareja, como cualquier otro movimiento.',
       'Modo pareja: el hogar al que perteneces, sus integrantes y los códigos de invitación.',
       'Notificaciones: el identificador para enviar notificaciones a tu teléfono y el tipo de sistema (Android o iOS).',
     ],

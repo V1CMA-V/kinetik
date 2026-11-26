@@ -19,6 +19,7 @@ Respuestas para los formularios de privacidad de App Store Connect y Google Play
 | Nombre | Supabase Auth (`display_name`) / Google | No | Saludo y modo pareja |
 | ID de usuario, identidad de Google | Supabase Auth | Sí | Cuenta |
 | Cuentas, movimientos, suscripciones, presupuestos, metas | Supabase (Postgres) | Sí, para usar la app | Funcionalidad |
+| Ingreso por pago, frecuencia, días de pago, cuenta de depósito, extras estimados | Supabase (`income_profiles`, solo visible para su dueño) | No | Proyección de pagos, avisos de día de pago, análisis y sugerencias de presupuesto |
 | Hogar, integrantes, invitaciones | Supabase | No (modo pareja) | Compartir con la pareja |
 | Token de notificaciones y plataforma | Supabase (`push_tokens`) | No | Avisos de actividad de la pareja |
 | Preferencias, sesión, recordatorios, resumen del widget | Solo en el teléfono | — | Funcionalidad |
@@ -40,7 +41,7 @@ Tipos de datos que se declaran. Todos están **vinculados a la identidad del usu
 | --- | --- | --- |
 | Información de contacto | Dirección de correo electrónico | Cuenta |
 | Información de contacto | Nombre | Opcional |
-| Información financiera | Otra información financiera | Saldos, movimientos, límites de crédito, presupuestos, metas |
+| Información financiera | Otra información financiera | Saldos, movimientos, límites de crédito, presupuestos, metas, ingresos (opcional) |
 | Identificadores | ID de usuario | ID de la cuenta en Supabase |
 
 No se declaran: ubicación, contactos, historial de navegación o búsqueda, datos de uso, diagnósticos, compras ni datos sensibles. El token de notificaciones push no es un "ID de dispositivo" en los términos de Apple.
