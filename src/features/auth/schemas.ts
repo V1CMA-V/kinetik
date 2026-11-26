@@ -16,13 +16,16 @@ export const resetRequestSchema = z.object({ email });
 
 export type ResetRequestValues = z.infer<typeof resetRequestSchema>;
 
-/** Step 2: the emailed code (6 digits by default, configurable up to 8) and the new password. */
+/** The emailed one-time code: 6 digits by default, configurable up to 8 in Supabase. */
+const otpCode = z
+  .string()
+  .trim()
+  .regex(/^\d{6,8}$/, 'Escribe el código de tu correo');
+
+/** Step 2: the emailed code and the new password. */
 export const resetPasswordSchema = z
   .object({
-    code: z
-      .string()
-      .trim()
-      .regex(/^\d{6,8}$/, 'Escribe el código de tu correo'),
+    code: otpCode,
     password: z.string().min(PASSWORD_MIN_LENGTH, `Mínimo ${PASSWORD_MIN_LENGTH} caracteres`),
     confirm: z.string().min(1, 'Confirma la nueva contraseña'),
   })
@@ -33,3 +36,8 @@ export const resetPasswordSchema = z
   });
 
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+
+/** After "Crear cuenta": the code from the confirmation email. */
+export const verifyEmailSchema = z.object({ code: otpCode });
+
+export type VerifyEmailValues = z.infer<typeof verifyEmailSchema>;

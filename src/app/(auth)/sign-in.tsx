@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAuthError } from '@supabase/supabase-js';
 import { useMutation } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -28,12 +29,23 @@ export default function SignInScreen() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
     },
+    // Signed up but never confirmed: send a fresh code and let them type it.
+    onError: async (error, { email }) => {
+      if (!isAuthError(error) || error.code !== 'email_not_confirmed') return;
+      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email });
+      if (!resendError) router.push({ pathname: '/verify-email', params: { email } });
+    },
   });
 
   const signUp = useMutation({
     mutationFn: async ({ email, password }: SignInValues) => {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
+      return { email, needsConfirmation: !data.session };
+    },
+    // With confirmations on there's no session yet: confirm with the emailed code.
+    onSuccess: ({ email, needsConfirmation }) => {
+      if (needsConfirmation) router.push({ pathname: '/verify-email', params: { email } });
     },
   });
 
@@ -107,9 +119,6 @@ export default function SignInScreen() {
             <Text className="text-sm font-semibold text-accent-ink">¿Olvidaste tu contraseña?</Text>
           </Pressable>
           {error ? <Text className="text-sm text-expense">{authErrorMessage(error)}</Text> : null}
-          {signUp.isSuccess ? (
-            <Text className="text-sm text-income">Revisa tu correo para confirmar la cuenta.</Text>
-          ) : null}
         </View>
 
         <View className="gap-3">
