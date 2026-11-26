@@ -9,7 +9,7 @@ import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
-import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { EXPENSE_CATEGORIES } from '@/features/transactions/constants';
 
 import { useBudgets } from '../api';
@@ -120,10 +120,8 @@ function BudgetFields({
           name="amount"
           render={({ field: { onChange, onBlur, value } }) => (
             <View className="gap-1">
-              <Input
+              <MoneyInput
                 label="Límite al mes"
-                placeholder="0.00"
-                keyboardType="decimal-pad"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}

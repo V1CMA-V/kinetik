@@ -10,6 +10,7 @@ import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 
 import { ACCOUNT_TYPES, type AccountType, TYPES_WITH_INSTITUTION } from '../constants';
 import { accountSchema, type AccountFormInput, type AccountFormOutput } from '../schemas';
@@ -125,10 +126,9 @@ export function AccountForm({
           name="balance"
           render={({ field: { onChange, onBlur, value } }) => (
             <View className="gap-1">
-              <Input
+              <MoneyInput
                 label={isCredit ? 'Deuda actual' : 'Saldo actual'}
-                placeholder="0.00"
-                keyboardType="decimal-pad"
+                allowNegative
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -148,10 +148,8 @@ export function AccountForm({
             control={control}
             name="creditLimit"
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input
+              <MoneyInput
                 label="Límite de crédito"
-                placeholder="0.00"
-                keyboardType="decimal-pad"
                 value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}

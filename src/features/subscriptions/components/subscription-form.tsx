@@ -10,6 +10,7 @@ import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { type Account, useAccounts } from '@/features/accounts/api';
 import { AccountSelect } from '@/features/transactions/components/account-select';
 import { DateField } from '@/features/transactions/components/date-field';
@@ -153,10 +154,8 @@ function SubscriptionFields({
           control={control}
           name="amount"
           render={({ field: { onChange, onBlur, value } }) => (
-            <Input
+            <MoneyInput
               label="Monto por cargo"
-              placeholder="0.00"
-              keyboardType="decimal-pad"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}

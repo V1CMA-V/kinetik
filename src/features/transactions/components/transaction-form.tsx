@@ -12,6 +12,7 @@ import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
 import { type Account, useAccounts } from '@/features/accounts/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
+import { finalizeAmountInput, formatAmountInput } from '@/lib/format';
 import { useThemeColors } from '@/theme/colors';
 
 import {
@@ -164,9 +165,14 @@ function TransactionFields({
               <View className="flex-row items-center">
                 <Text className="font-display text-4xl font-bold text-ink-muted">$</Text>
                 <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
+                  value={formatAmountInput(value)}
+                  onChangeText={(text) => onChange(formatAmountInput(text))}
+                  onBlur={() => {
+                    const finalized = finalizeAmountInput(value);
+                    if (finalized !== value) onChange(finalized);
+                    onBlur();
+                  }}
+                  accessibilityLabel="Cantidad en pesos"
                   placeholder="0.00"
                   placeholderTextColor={colors['ink-muted']}
                   keyboardType="decimal-pad"
@@ -176,6 +182,7 @@ function TransactionFields({
                   }`}
                 />
               </View>
+              <Text className="text-xs font-medium text-ink-muted">MXN</Text>
               {formState.errors.amount ? (
                 <Text className="text-sm text-expense">{formState.errors.amount.message}</Text>
               ) : null}

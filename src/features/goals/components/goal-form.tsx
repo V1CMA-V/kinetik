@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Text } from '@/components/ui/text';
 import { useThemeColors } from '@/theme/colors';
 
@@ -93,10 +94,8 @@ export function GoalForm({
           control={control}
           name="targetAmount"
           render={({ field: { onChange, onBlur, value } }) => (
-            <Input
+            <MoneyInput
               label="¿Cuánto quieren juntar?"
-              placeholder="0.00"
-              keyboardType="decimal-pad"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}

@@ -7,6 +7,7 @@ import { FormScrollView } from '@/components/form-scroll-view';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Text } from '@/components/ui/text';
 import { DateField } from '@/features/transactions/components/date-field';
 import { useFormatMoney } from '@/hooks/use-format-money';
@@ -92,10 +93,8 @@ export function ContributionForm({ goalName, remaining, onSubmit, isSubmitting, 
           name="amount"
           render={({ field: { onChange, onBlur, value } }) => (
             <View className="gap-2">
-              <Input
+              <MoneyInput
                 label="Cantidad"
-                placeholder="0.00"
-                keyboardType="decimal-pad"
                 autoFocus
                 value={value}
                 onChangeText={onChange}
