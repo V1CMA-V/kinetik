@@ -5,11 +5,14 @@ import { type Scope, filterByScope } from '@/features/household/scope';
 import { transactionKeys } from '@/features/transactions/api';
 import { monthRange } from '@/lib/date';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth-store';
 
 export const analysisKeys = {
   /** Under `transactionKeys.all` so money mutations refresh it. */
   income: (start: string, end: string) =>
     [...transactionKeys.all, 'income-history', start, end] as const,
+  ownIncome: (start: string, end: string) =>
+    [...transactionKeys.all, 'own-income', start, end] as const,
 };
 
 type IncomeRow = {
@@ -54,5 +57,32 @@ export function useIncomeHistory(months: string[], scope: Scope = 'all') {
       return data;
     },
     select,
+  });
+}
+
+/**
+ * Income you registered yourself in the month that contains `month`, whatever
+ * account it landed in. Compared against your own declared income, so a
+ * partner's income in a shared account never counts.
+ */
+export function useOwnMonthIncome(month: string) {
+  const userId = useAuthStore((s) => s.session?.user.id);
+  const { start, end } = monthRange(month);
+
+  return useQuery({
+    queryKey: [...analysisKeys.ownIncome(start, end), userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) return 0;
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('amount')
+        .eq('kind', 'income')
+        .eq('user_id', userId)
+        .gte('occurred_on', start)
+        .lte('occurred_on', end);
+      if (error) throw error;
+      return Math.round(data.reduce((sum, r) => sum + r.amount, 0) * 100) / 100;
+    },
   });
 }

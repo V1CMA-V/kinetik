@@ -5,13 +5,20 @@ import { ActivityIndicator, RefreshControl, ScrollView, View } from 'react-nativ
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
+import { useOwnMonthIncome } from '@/features/analysis/api';
 import { CashflowCard } from '@/features/analysis/components/cashflow-card';
 import { CategoryBreakdown } from '@/features/analysis/components/category-breakdown';
+import {
+  IncomeInsightsCard,
+  IncomePrompt,
+} from '@/features/analysis/components/income-insights-card';
 import { MonthProjectionCard } from '@/features/analysis/components/month-projection';
+import { computeIncomeInsights } from '@/features/analysis/income-insights';
 import { computeProjection } from '@/features/analysis/projection';
 import { useSpendingHistory } from '@/features/analysis/use-spending-history';
 import { useBudgetProgress } from '@/features/budgets/api';
 import { ScopeFilter, useScope } from '@/features/household/components/scope-filter';
+import { useIncomeProfile } from '@/features/income/api';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { formatMonth, monthRange, today } from '@/lib/date';
 
@@ -21,6 +28,8 @@ export default function AnalysisScreen() {
   const scope = useScope();
   const history = useSpendingHistory(month, scope);
   const budgets = useBudgetProgress(month);
+  const incomeProfile = useIncomeProfile();
+  const ownIncome = useOwnMonthIncome(month);
 
   const selected = history.months[history.months.length - 1];
   const previous = history.months[history.months.length - 2];
@@ -59,6 +68,29 @@ export default function AnalysisScreen() {
     [isCurrentMonth, current, previous.spending],
   );
 
+  // Income is personal: it's compared against "Todo" or "Personal" spending, never
+  // against the household-only view ("Compartido"), where the spending isn't just
+  // yours and your own pay would make the share misleading. "Todo" includes what you
+  // see of shared spending, like budgets do. Registered income is always what *you*
+  // registered (any account), never a partner's.
+  const incomeInsights = useMemo(() => {
+    const profile = incomeProfile.data;
+    if (!profile || !current || scope === 'shared' || ownIncome.data === undefined) return null;
+    const { start, end } = monthRange(month);
+    const insights = computeIncomeInsights({
+      start,
+      end,
+      today: today(),
+      schedule: profile,
+      variableMonthly: profile.variable_monthly,
+      spentToDate: projection ? projection.spentToDate : current.total,
+      projectedSpending: projection?.projected ?? null,
+      registeredIncome: ownIncome.data,
+    });
+    return insights.period === 'future' ? null : insights;
+  }, [incomeProfile.data, current, scope, ownIncome.data, month, projection]);
+  const showIncomePrompt = scope !== 'shared' && incomeProfile.data === null;
+
   // Budgets cover all your spending, so they only compare against the "Todo" view.
   const budgetsByCategory = useMemo(
     () =>
@@ -79,6 +111,8 @@ export default function AnalysisScreen() {
             onRefresh={() => {
               history.refetch();
               budgets.refetch();
+              incomeProfile.refetch();
+              ownIncome.refetch();
             }}
           />
         }
@@ -114,6 +148,19 @@ export default function AnalysisScreen() {
                 <Text className="text-lg font-bold text-ink">Proyección del mes</Text>
                 <MonthProjectionCard projection={projection} previousName={previousName} />
               </View>
+            ) : null}
+
+            {incomeInsights ? (
+              <View className="gap-3">
+                <Text className="text-lg font-bold text-ink">Frente a tu ingreso</Text>
+                <IncomeInsightsCard
+                  insights={incomeInsights}
+                  monthName={monthName}
+                  personalOnly={scope === 'personal'}
+                />
+              </View>
+            ) : showIncomePrompt ? (
+              <IncomePrompt />
             ) : null}
 
             <View className="gap-3">
