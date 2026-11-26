@@ -34,11 +34,26 @@ export type CreditCardStatement = {
   paidSinceCut: number;
   remainingToPay: number;
   isPaid: boolean;
-  /** Non-MSI charges since the last cut plus MSI installments billed at the next cut. */
-  currentPeriodSpending: number;
+  /** Statement in progress, closing at `nextCutDate`. */
+  currentPeriod: CurrentPeriod;
   /** Unbilled MSI installments (after the last cut). */
   msiPending: number;
   activeMsiPlans: number;
+};
+
+export type CurrentPeriod = {
+  /** Non-MSI charges since the last cut. */
+  charges: number;
+  /** Refunds (income on the card) since the last cut. */
+  refunds: number;
+  /** MSI installments billed at the next cut. */
+  msiInstallments: number;
+  /** MSI plans with an installment billed at the next cut. */
+  msiPlans: number;
+  /** Estimated "pago para no generar intereses" of the next statement. */
+  total: number;
+  /** Due date of the statement that closes at the next cut. */
+  dueDate: string;
 };
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -127,7 +142,10 @@ export function computeCardStatement(
 
   let statementAmount = 0;
   let paidSinceCut = 0;
-  let currentPeriodSpending = 0;
+  let currentCharges = 0;
+  let currentRefunds = 0;
+  let currentMsi = 0;
+  let currentMsiPlans = 0;
   let msiPending = 0;
   let activeMsiPlans = 0;
 
@@ -151,7 +169,10 @@ export function computeCardStatement(
       let pendingHere = false;
       cuts.forEach((cut, i) => {
         if (cut === lastCutDate) statementAmount += amounts[i];
-        if (cut === nextCutDate) currentPeriodSpending += amounts[i];
+        if (cut === nextCutDate) {
+          currentMsi += amounts[i];
+          currentMsiPlans += 1;
+        }
         if (cut > lastCutDate) {
           msiPending += amounts[i];
           pendingHere = true;
@@ -164,7 +185,10 @@ export function computeCardStatement(
     // Expenses and cash withdrawals/transfers out of the card are charges.
     const sign = t.kind === 'income' ? -1 : 1;
     if (inLastStatement) statementAmount += sign * t.amount;
-    if (inCurrentPeriod && sign > 0) currentPeriodSpending += t.amount;
+    if (inCurrentPeriod) {
+      if (sign > 0) currentCharges += t.amount;
+      else currentRefunds += t.amount;
+    }
   }
 
   statementAmount = Math.max(0, round2(statementAmount));
@@ -180,7 +204,14 @@ export function computeCardStatement(
     paidSinceCut,
     remainingToPay,
     isPaid: remainingToPay === 0,
-    currentPeriodSpending: round2(currentPeriodSpending),
+    currentPeriod: {
+      charges: round2(currentCharges),
+      refunds: round2(currentRefunds),
+      msiInstallments: round2(currentMsi),
+      msiPlans: currentMsiPlans,
+      total: Math.max(0, round2(currentCharges - currentRefunds + currentMsi)),
+      dueDate: dueDateForCut(nextCutDate, paymentDueDay),
+    },
     msiPending: round2(msiPending),
     activeMsiPlans,
   };

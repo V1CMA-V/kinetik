@@ -158,7 +158,10 @@ export default function AccountDetailScreen() {
             </View>
 
             {isCredit && statement ? (
-              <PaymentStatus statement={statement} currency={current.currency} />
+              <>
+                <PaymentStatus statement={statement} currency={current.currency} />
+                <CurrentPeriodCard statement={statement} currency={current.currency} />
+              </>
             ) : null}
 
             <View className="flex-row gap-3">
@@ -363,8 +366,7 @@ function PaymentStatus({
       </View>
       <View className="gap-0.5 border-t border-line pt-3">
         <Text className="text-xs text-ink-muted">
-          Último corte el {formatShortDate(s.lastCutDate)}, el siguiente el{' '}
-          {formatShortDate(s.nextCutDate)}
+          Último corte el {formatShortDate(s.lastCutDate)}
         </Text>
         {s.msiPending > 0 ? (
           <Text className="text-xs tabular-nums text-ink-muted">
@@ -372,6 +374,56 @@ function PaymentStatus({
           </Text>
         ) : null}
       </View>
+    </View>
+  );
+}
+
+/** Credit card: what the statement in progress adds up to so far (purchases + MSI installments). */
+function CurrentPeriodCard({
+  statement: s,
+  currency,
+}: {
+  statement: CreditCardStatement;
+  currency: string;
+}) {
+  const formatAmount = useFormatMoney();
+  const p = s.currentPeriod;
+
+  return (
+    <View className="gap-3 rounded-card border border-line bg-card p-4">
+      <View className="flex-row items-start gap-3">
+        <View className="flex-1 gap-0.5">
+          <Text className="text-base font-semibold text-ink">Corte en curso</Text>
+          <Text className="text-sm text-ink-muted">
+            Cierra el {formatShortDate(s.nextCutDate)}, pagas antes del{' '}
+            {formatShortDate(p.dueDate)}
+          </Text>
+        </View>
+        <Text className="font-display text-xl font-bold tabular-nums text-ink">
+          {formatAmount(p.total, currency)}
+        </Text>
+      </View>
+      <View className="gap-1.5 border-t border-line pt-3">
+        <PeriodRow label="Compras del periodo" value={formatAmount(p.charges, currency)} />
+        {p.msiInstallments > 0 ? (
+          <PeriodRow
+            label={`Mensualidades MSI (${p.msiPlans} ${p.msiPlans === 1 ? 'plan' : 'planes'})`}
+            value={formatAmount(p.msiInstallments, currency)}
+          />
+        ) : null}
+        {p.refunds > 0 ? (
+          <PeriodRow label="Devoluciones" value={`-${formatAmount(p.refunds, currency)}`} />
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+function PeriodRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="flex-row justify-between gap-3">
+      <Text className="flex-shrink text-sm text-ink-muted">{label}</Text>
+      <Text className="text-sm font-semibold tabular-nums text-ink">{value}</Text>
     </View>
   );
 }
