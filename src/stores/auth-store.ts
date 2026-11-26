@@ -20,7 +20,7 @@ type AuthState = {
 /** Drop everything cached for the previous user so the next one never sees it. */
 function clearUserData() {
   queryClient.clear();
-  useSettingsStore.setState({ lastAccountId: null, lastCategories: {} });
+  useSettingsStore.setState({ lastAccountId: null, lastCategories: {}, paymentFunds: {} });
   useScopeStore.setState({ scope: 'all' });
 }
 

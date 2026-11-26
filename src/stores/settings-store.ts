@@ -38,6 +38,9 @@ type SettingsState = {
     accountId: string;
     category: string | null;
   }) => void;
+  /** Accounts turned on/off by hand in "Pagos del mes" (the rest use the per-type default). */
+  paymentFunds: Record<string, boolean>;
+  setPaymentFund: (accountId: string, included: boolean) => void;
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -69,6 +72,9 @@ export const useSettingsStore = create<SettingsState>()(
               ? state.lastCategories
               : { ...state.lastCategories, [kind]: category },
         })),
+      paymentFunds: {},
+      setPaymentFund: (accountId, included) =>
+        set((state) => ({ paymentFunds: { ...state.paymentFunds, [accountId]: included } })),
     }),
     {
       name: 'settings',
