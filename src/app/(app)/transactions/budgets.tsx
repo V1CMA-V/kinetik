@@ -10,6 +10,14 @@ import { Screen } from '@/components/screen';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
 import { useBudgetProgress, useDeleteBudget } from '@/features/budgets/api';
 import type { BudgetStatus, CategoryProgress } from '@/features/budgets/progress';
+import {
+  BUDGET_GROUPS,
+  GROUP_SHARE,
+  SAVINGS_SHARE,
+  budgetTotals,
+} from '@/features/budgets/suggestions';
+import { useIncomeProfile } from '@/features/income/api';
+import { monthlyIncome } from '@/features/income/schedule';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { monthRange, parseISODate, today } from '@/lib/date';
 import { useThemeColors } from '@/theme/colors';
@@ -56,8 +64,7 @@ export default function BudgetsScreen() {
   const categories = data?.categories ?? [];
   const overCount = categories.filter((c) => c.status === 'over').length;
   const daysLeft = daysLeftInMonth(month);
-  const perDay =
-    totals && daysLeft && totals.remaining > 0 ? totals.remaining / daysLeft : null;
+  const perDay = totals && daysLeft && totals.remaining > 0 ? totals.remaining / daysLeft : null;
 
   return (
     <Screen className="pt-4">
@@ -119,7 +126,9 @@ export default function BudgetsScreen() {
                       presupuestados
                     </Text>
                   </View>
-                  <View className={`rounded-full px-2.5 py-1 ${STATUS_PILL[totals.status].className}`}>
+                  <View
+                    className={`rounded-full px-2.5 py-1 ${STATUS_PILL[totals.status].className}`}
+                  >
                     <Text className={`text-xs font-semibold ${STATUS_PILL[totals.status].text}`}>
                       {STATUS_PILL[totals.status].label}
                     </Text>
@@ -170,6 +179,8 @@ export default function BudgetsScreen() {
               </View>
             ) : null}
 
+            {progress.data ? <IncomeSummary budgets={categories} /> : null}
+
             {categories.length ? (
               <View className="-mb-3 flex-row items-baseline justify-between px-1">
                 <Text className="text-lg font-bold text-ink">Categorías</Text>
@@ -202,12 +213,10 @@ export default function BudgetsScreen() {
               >
                 <Icon ios="chart.pie" android="pie_chart" color={colors['accent-ink']} />
               </View>
-              <Text className="text-center text-base font-semibold text-ink">
-                Sin presupuestos
-              </Text>
+              <Text className="text-center text-base font-semibold text-ink">Sin presupuestos</Text>
               <Text className="text-center text-sm text-ink-muted">
-                Ponle un límite mensual a tus categorías de gasto (Comida, Súper, Transporte…) y
-                ve cuánto llevas cada mes.
+                Ponle un límite mensual a tus categorías de gasto (Comida, Súper, Transporte…) y ve
+                cuánto llevas cada mes.
               </Text>
             </View>
           )
@@ -221,6 +230,69 @@ export default function BudgetsScreen() {
         }
       />
     </Screen>
+  );
+}
+
+/** Budgets vs. the 50/30/20 rule, or a prompt to add the income profile. */
+function IncomeSummary({ budgets }: { budgets: CategoryProgress[] }) {
+  const formatAmount = useFormatMoney();
+  const colors = useThemeColors();
+  const { data: profile } = useIncomeProfile();
+
+  // `undefined` while loading or on error: show nothing.
+  if (profile === null) {
+    return (
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => router.push('/profile/income')}
+        className="flex-row items-center gap-2 px-1 active:opacity-70"
+      >
+        <Text className="flex-1 text-sm text-ink-muted">
+          Agrega tu ingreso para ver sugerencias con la regla 50/30/20.
+        </Text>
+        <Icon ios="chevron.right" android="chevron_right" color={colors['ink-muted']} size={16} />
+      </Pressable>
+    );
+  }
+
+  const income = profile ? monthlyIncome(profile) : 0;
+  if (!(income > 0) || !budgets.length) return null;
+
+  const totals = budgetTotals(
+    budgets.map((b) => ({ category: b.category, amount: b.budget })),
+    income,
+  );
+
+  return (
+    <View className="gap-2 rounded-card border border-line bg-card p-4">
+      <Text className="text-sm text-ink">
+        Tus presupuestos suman{' '}
+        <Text className="text-sm font-semibold tabular-nums text-ink">
+          {formatAmount(totals.total)}
+        </Text>
+        , el{' '}
+        <Text
+          className={`text-sm font-semibold tabular-nums ${totals.ratio > 0.8 ? 'text-warning' : 'text-ink'}`}
+        >
+          {Math.round(totals.ratio * 100)}%
+        </Text>{' '}
+        de tu ingreso.
+      </Text>
+      {(['needs', 'wants'] as const).map((g) => {
+        const group = totals.groups[g];
+        return (
+          <SummaryLine
+            key={g}
+            label={`${BUDGET_GROUPS[g].label} (meta ${Math.round(GROUP_SHARE[g] * 100)}%)`}
+            value={`${formatAmount(group.total)} de ${formatAmount(group.target)}`}
+            danger={group.ratio > 1}
+          />
+        );
+      })}
+      <Text className="text-xs text-ink-muted">
+        El {Math.round(SAVINGS_SHARE * 100)}% restante es para ahorro.
+      </Text>
+    </View>
   );
 }
 
