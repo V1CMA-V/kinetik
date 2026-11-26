@@ -12,6 +12,7 @@ import { BalanceHero } from '@/features/home/components/balance-hero';
 import { HomeSection } from '@/features/home/components/home-section';
 import { MonthSpendingSection } from '@/features/home/components/month-spending';
 import { MyAccounts } from '@/features/home/components/my-accounts';
+import { MyGoals } from '@/features/home/components/my-goals';
 import { QuickActions } from '@/features/home/components/quick-actions';
 import { UpcomingCharges } from '@/features/home/components/upcoming-charges';
 import { UpcomingPayments } from '@/features/home/components/upcoming-payments';
@@ -128,6 +129,8 @@ export default function HomeScreen() {
             ) : null}
 
             <MyAccounts accounts={accounts.data ?? []} />
+
+            <MyGoals />
 
             {spending.data ? (
               <MonthSpendingSection

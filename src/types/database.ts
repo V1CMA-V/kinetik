@@ -95,6 +95,88 @@ export type Database = {
         };
         Relationships: [];
       };
+      goal_contributions: {
+        Row: {
+          amount: number;
+          contributed_on: string;
+          created_at: string;
+          goal_id: string;
+          id: string;
+          note: string | null;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          contributed_on?: string;
+          created_at?: string;
+          goal_id: string;
+          id?: string;
+          note?: string | null;
+          user_id?: string;
+        };
+        Update: {
+          amount?: number;
+          contributed_on?: string;
+          created_at?: string;
+          goal_id?: string;
+          id?: string;
+          note?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goal_contributions_goal_id_fkey';
+            columns: ['goal_id'];
+            isOneToOne: false;
+            referencedRelation: 'goals';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      goals: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          household_id: string | null;
+          id: string;
+          name: string;
+          target_amount: number;
+          target_date: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          household_id?: string | null;
+          id?: string;
+          name: string;
+          target_amount: number;
+          target_date?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          household_id?: string | null;
+          id?: string;
+          name?: string;
+          target_amount?: number;
+          target_date?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goals_household_id_fkey';
+            columns: ['household_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       household_invites: {
         Row: {
           code: string;
@@ -184,17 +266,41 @@ export type Database = {
         Row: {
           display_name: string | null;
           id: string;
+          notify_partner_activity: boolean;
           updated_at: string;
         };
         Insert: {
           display_name?: string | null;
           id: string;
+          notify_partner_activity?: boolean;
           updated_at?: string;
         };
         Update: {
           display_name?: string | null;
           id?: string;
+          notify_partner_activity?: boolean;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      push_tokens: {
+        Row: {
+          platform: string;
+          token: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          platform: string;
+          token: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          platform?: string;
+          token?: string;
+          updated_at?: string;
+          user_id?: string;
         };
         Relationships: [];
       };
@@ -331,6 +437,11 @@ export type Database = {
     Functions: {
       accept_household_invite: { Args: { p_code: string }; Returns: string };
       can_access_account: { Args: { p_account_id: string }; Returns: boolean };
+      can_access_goal: { Args: { p_goal_id: string }; Returns: boolean };
+      check_notify_partner_secret: {
+        Args: { p_secret: string };
+        Returns: boolean;
+      };
       create_household_invite: {
         Args: never;
         Returns: {
@@ -345,6 +456,10 @@ export type Database = {
       is_partner: { Args: { p_user_id: string }; Returns: boolean };
       leave_household: { Args: never; Returns: undefined };
       process_due_subscriptions: { Args: { p_today: string }; Returns: number };
+      register_push_token: {
+        Args: { p_platform: string; p_token: string };
+        Returns: undefined;
+      };
       subscription_charge_date: {
         Args: {
           p_anchor: string;
@@ -353,6 +468,7 @@ export type Database = {
         };
         Returns: string;
       };
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined };
     };
     Enums: {
       account_type: 'bank_account' | 'credit_card' | 'cash' | 'investment';

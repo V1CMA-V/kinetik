@@ -106,6 +106,15 @@ export default function AccountsScreen() {
               </View>
             </View>
 
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push('/accounts/goals')}
+              className="h-10 flex-row items-center gap-1.5 self-start rounded-full bg-sunken px-4 active:opacity-70"
+            >
+              <Icon ios="flag" android="flag" color={colors.ink} size={18} />
+              <Text className="text-sm font-semibold text-ink">Metas</Text>
+            </Pressable>
+
             {all.length ? (
               <View className="gap-3 rounded-card border border-line bg-card p-5">
                 <View className="gap-1">
