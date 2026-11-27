@@ -19,10 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.vicma.kinetik",
-      "runtimeVersion": {
-        "policy": "appVersion"
-      }
+      "package": "com.vicma.kinetik"
     },
     "web": {
       "output": "single",
@@ -157,6 +154,9 @@
     "owner": "vicmadev",
     "updates": {
       "url": "https://u.expo.dev/bb4b69ce-664e-4160-b49e-f857d47999a7"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
