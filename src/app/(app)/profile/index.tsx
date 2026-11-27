@@ -1,3 +1,5 @@
+import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { type ComponentRef, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
@@ -142,8 +144,26 @@ export default function ProfileScreen() {
         >
           <Text className="text-base font-semibold text-expense">Cerrar sesión</Text>
         </Pressable>
+
+        <AppVersion />
       </ScrollView>
     </Screen>
+  );
+}
+
+/** App version plus the running EAS Update, so OTA updates can be confirmed on device. */
+function AppVersion() {
+  const version = Constants.expoConfig?.version;
+  const update =
+    !Updates.isEmbeddedLaunch && Updates.updateId
+      ? ` · update ${Updates.updateId.slice(0, 7)}`
+      : '';
+
+  return (
+    <Text selectable className="text-center text-xs text-ink-muted">
+      Kinetik {version}
+      {update}
+    </Text>
   );
 }
 
