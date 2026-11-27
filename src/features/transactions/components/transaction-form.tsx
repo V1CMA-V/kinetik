@@ -11,17 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Input } from '@/components/ui/input';
 import { type Account, useAccounts } from '@/features/accounts/api';
+import { useCategories } from '@/features/categories/api';
+import { withCategory } from '@/features/categories/categories';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { finalizeAmountInput, formatAmountInput } from '@/lib/format';
 import { useThemeColors } from '@/theme/colors';
 
-import {
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
-  INSTALLMENT_OPTIONS,
-  TRANSACTION_KIND_ORDER,
-  TRANSACTION_KINDS,
-} from '../constants';
+import { INSTALLMENT_OPTIONS, TRANSACTION_KIND_ORDER, TRANSACTION_KINDS } from '../constants';
 import {
   transactionSchema,
   type TransactionFormInput,
@@ -43,11 +39,16 @@ type Props = {
   children?: ReactNode;
 };
 
-/** Waits for the accounts so the form (and its MSI rules) starts with the real account list. */
+/**
+ * Waits for the accounts so the form (and its MSI rules) starts with the real account list,
+ * and for the custom categories so a remembered one can be preselected.
+ */
 export function TransactionForm(props: Props) {
   const accounts = useAccounts();
+  // Both kinds come from one query.
+  const { isLoading: categoriesLoading } = useCategories('expense');
 
-  if (accounts.isPending) {
+  if (accounts.isPending || categoriesLoading) {
     return (
       <Screen className="items-center justify-center">
         <ActivityIndicator />
@@ -126,7 +127,13 @@ function TransactionFields({
   };
 
   const submit = handleSubmit(onSubmit);
-  const categories = kind === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const { categories: kindCategories } = useCategories(kind === 'income' ? 'income' : 'expense');
+  // The saved category stays selectable even if it's no longer listed (a deleted custom
+  // category or the partner's own one).
+  const categories = withCategory(
+    kindCategories,
+    kind === defaultValues.kind ? defaultValues.category : undefined,
+  );
 
   return (
     <Screen>

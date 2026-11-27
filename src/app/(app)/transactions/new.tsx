@@ -1,14 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { useAccounts } from '@/features/accounts/api';
+import { useCategories } from '@/features/categories/api';
 import { useCreateTransaction } from '@/features/transactions/api';
 import { TransactionForm } from '@/features/transactions/components/transaction-form';
-import {
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
-  TRANSACTION_KIND_ORDER,
-  type TransactionKind,
-} from '@/features/transactions/constants';
+import { TRANSACTION_KIND_ORDER, type TransactionKind } from '@/features/transactions/constants';
 import { today } from '@/lib/date';
 import { finalizeAmountInput } from '@/lib/format';
 import { useSettingsStore } from '@/stores/settings-store';
@@ -21,10 +17,9 @@ function parseAmountParam(value: unknown) {
   return finalizeAmountInput(value);
 }
 
-function parseCategoryParam(kind: TransactionKind, value: unknown) {
-  if (typeof value !== 'string' || kind === 'transfer') return undefined;
-  const list: readonly string[] = kind === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-  return list.includes(value) ? value : undefined;
+/** `value` if it's one of the kind's categories (built-in or custom), else undefined. */
+function pickCategory(categories: string[], value: unknown) {
+  return typeof value === 'string' && categories.includes(value) ? value : undefined;
 }
 
 /**
@@ -44,6 +39,8 @@ export default function NewTransactionScreen() {
     : 'expense';
 
   const accounts = useAccounts();
+  // The form waits for these before mounting, so the defaults below include custom ones.
+  const { categories } = useCategories(kind === 'income' ? 'income' : 'expense');
   const createTransaction = useCreateTransaction();
   const lastAccountId = useSettingsStore((s) => s.lastAccountId);
   const lastCategories = useSettingsStore((s) => s.lastCategories);
@@ -58,9 +55,12 @@ export default function NewTransactionScreen() {
     : isActive(lastAccountId)
       ? lastAccountId
       : '';
+  // A remembered category deleted since then is just not preselected.
   const category =
-    parseCategoryParam(kind, params.category) ??
-    (kind === 'transfer' ? undefined : lastCategories[kind]);
+    kind === 'transfer'
+      ? undefined
+      : (pickCategory(categories, params.category) ??
+        pickCategory(categories, lastCategories[kind]));
 
   return (
     <TransactionForm

@@ -10,9 +10,9 @@ import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { MoneyInput } from '@/components/ui/money-input';
+import { useCategories } from '@/features/categories/api';
 import { useIncomeProfile } from '@/features/income/api';
 import { monthlyIncome } from '@/features/income/schedule';
-import { EXPENSE_CATEGORIES } from '@/features/transactions/constants';
 import { useFormatMoney } from '@/hooks/use-format-money';
 import { finalizeAmountInput } from '@/lib/format';
 
@@ -34,11 +34,12 @@ type Props = {
   children?: ReactNode;
 };
 
-/** Waits for the existing budgets so create mode only offers free categories. */
+/** Waits for the existing budgets (and custom categories) so create mode only offers free ones. */
 export function BudgetForm(props: Props) {
   const budgets = useBudgets();
+  const expenseCategories = useCategories('expense');
 
-  if (budgets.isPending) {
+  if (budgets.isPending || expenseCategories.isLoading) {
     return (
       <Screen className="items-center justify-center">
         <ActivityIndicator />
@@ -50,7 +51,7 @@ export function BudgetForm(props: Props) {
   const categories =
     props.mode === 'edit'
       ? [props.defaultValues.category]
-      : EXPENSE_CATEGORIES.filter((c) => !taken.has(c));
+      : expenseCategories.categories.filter((c) => !taken.has(c));
 
   // While saving, the refetched budgets already include the new one; don't flash this.
   if (!categories.length && !props.isSubmitting) {

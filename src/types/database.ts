@@ -95,6 +95,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      categories: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: Database['public']['Enums']['transaction_kind'];
+          name: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: Database['public']['Enums']['transaction_kind'];
+          name: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: Database['public']['Enums']['transaction_kind'];
+          name?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       goal_contributions: {
         Row: {
           amount: number;
