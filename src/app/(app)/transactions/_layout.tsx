@@ -6,6 +6,7 @@ export default function TransactionsLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="new" options={{ presentation: 'modal' }} />
       <Stack.Screen name="[id]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="filters" options={{ presentation: 'modal' }} />
       <Stack.Screen name="subscriptions" />
       <Stack.Screen name="new-subscription" options={{ presentation: 'modal' }} />
       <Stack.Screen name="subscription/[id]" options={{ presentation: 'modal' }} />

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { accountKeys } from '@/features/accounts/api';
 import { monthRange } from '@/lib/date';
+import { fetchAllPages } from '@/lib/fetch-all-pages';
 import { supabase } from '@/lib/supabase';
 import type { TablesInsert, TablesUpdate } from '@/types/database';
 
@@ -14,6 +15,7 @@ const TRANSACTION_SELECT = `
 export const transactionKeys = {
   all: ['transactions'] as const,
   month: (month: string) => [...transactionKeys.all, 'month', month] as const,
+  history: () => [...transactionKeys.all, 'history'] as const,
   detail: (id: string) => [...transactionKeys.all, 'detail', id] as const,
   account: (accountId: string, start: string, end: string) =>
     [...transactionKeys.all, 'account', accountId, start, end] as const,
@@ -40,6 +42,28 @@ export function useMonthTransactions(month: string) {
 }
 
 export type Transaction = NonNullable<ReturnType<typeof useMonthTransactions>['data']>[number];
+
+/** Every transaction you can see, newest first (for search across months and export). */
+export function fetchAllTransactions() {
+  return fetchAllPages((from, to) =>
+    supabase
+      .from('transactions')
+      .select(TRANSACTION_SELECT)
+      .order('occurred_on', { ascending: false })
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(from, to),
+  );
+}
+
+/** Whole history; only fetched while `enabled` (e.g. searching in "Todo el historial"). */
+export function useAllTransactions(enabled: boolean) {
+  return useQuery({
+    queryKey: transactionKeys.history(),
+    queryFn: fetchAllTransactions,
+    enabled,
+  });
+}
 
 /**
  * Transactions of one account between `start` and `end` (inclusive, `YYYY-MM-DD`):
