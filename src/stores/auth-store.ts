@@ -9,6 +9,7 @@ import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/lib/supabase';
 import { useScopeStore } from '@/stores/scope-store';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useTransactionFiltersStore } from '@/stores/transaction-filters-store';
 
 type AuthState = {
   session: Session | null;
@@ -22,8 +23,14 @@ type AuthState = {
 /** Drop everything cached for the previous user so the next one never sees it. */
 function clearUserData() {
   queryClient.clear();
-  useSettingsStore.setState({ lastAccountId: null, lastCategories: {}, paymentFunds: {} });
+  useSettingsStore.setState({
+    lastAccountId: null,
+    lastCategories: {},
+    paymentFunds: {},
+    budgetAlertsSent: {},
+  });
   useScopeStore.setState({ scope: 'all' });
+  useTransactionFiltersStore.getState().reset();
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
