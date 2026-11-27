@@ -17,8 +17,10 @@ import {
   IncomePrompt,
 } from '@/features/analysis/components/income-insights-card';
 import { MonthProjectionCard } from '@/features/analysis/components/month-projection';
+import { NetWorthCard } from '@/features/analysis/components/net-worth-card';
 import { computeIncomeInsights } from '@/features/analysis/income-insights';
 import { computeProjection } from '@/features/analysis/projection';
+import { useNetWorthHistory } from '@/features/analysis/use-net-worth-history';
 import { useSpendingHistory } from '@/features/analysis/use-spending-history';
 import { useBudgetProgress } from '@/features/budgets/api';
 import { ScopeFilter, useScope } from '@/features/household/components/scope-filter';
@@ -35,6 +37,7 @@ export default function AnalysisScreen() {
   const incomeProfile = useIncomeProfile();
   const ownIncome = useOwnMonthIncome(month);
   const cardStatements = useCreditCardStatements();
+  const netWorth = useNetWorthHistory(month, scope);
 
   const selected = history.months[history.months.length - 1];
   const previous = history.months[history.months.length - 2];
@@ -130,6 +133,7 @@ export default function AnalysisScreen() {
               incomeProfile.refetch();
               ownIncome.refetch();
               cardStatements.refetch();
+              netWorth.refetch();
             }}
           />
         }
@@ -159,6 +163,17 @@ export default function AnalysisScreen() {
               selected={month}
               onSelect={setMonth}
             />
+
+            <View className="gap-3">
+              <Text className="text-lg font-bold text-ink">Patrimonio</Text>
+              {netWorth.data ? (
+                <NetWorthCard months={netWorth.data} selected={month} onSelect={setMonth} />
+              ) : netWorth.error ? (
+                <Text className="text-sm text-expense">{netWorth.error.message}</Text>
+              ) : (
+                <ActivityIndicator />
+              )}
+            </View>
 
             {projection && projection.spentToDate + projection.scheduled > 0 ? (
               <View className="gap-3">

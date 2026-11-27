@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import type { Account } from '@/features/accounts/api';
 import { DEFAULT_CURRENCY } from '@/features/accounts/constants';
+import { summarizeNetWorth } from '@/features/accounts/net-worth';
 import { useFormatMoney } from '@/hooks/use-format-money';
 
 type Props = {
@@ -13,13 +14,7 @@ type Props = {
 export function BalanceHero({ accounts }: Props) {
   const formatAmount = useFormatMoney();
 
-  let available = 0;
-  let debt = 0;
-  for (const account of accounts) {
-    if (account.type === 'credit_card') debt += Math.max(0, -account.balance);
-    else available += account.balance;
-  }
-  const net = available - debt;
+  const { available, debt, net } = summarizeNetWorth(accounts);
   const positiveAvailable = Math.max(0, available);
   const scale = positiveAvailable + debt;
   // Share of the bar for what you have; the rest is card debt.
