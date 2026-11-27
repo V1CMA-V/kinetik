@@ -159,7 +159,7 @@ function PartnerActivityRow() {
       description={
         setPreference.error?.message ??
         (granted
-          ? 'Cuando registre algo en una cuenta compartida'
+          ? 'Cuando registre algo en una cuenta o meta compartida'
           : 'Permite las notificaciones para recibir estos avisos')
       }
       value={value}

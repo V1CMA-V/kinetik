@@ -24,7 +24,7 @@ async function ensurePartnerChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(PARTNER_CHANNEL_ID, {
     name: 'Movimientos de tu pareja',
-    description: 'Gastos e ingresos que registra tu pareja en cuentas compartidas',
+    description: 'Movimientos de tu pareja en cuentas y metas compartidas',
     importance: AndroidImportance.HIGH,
   });
 }

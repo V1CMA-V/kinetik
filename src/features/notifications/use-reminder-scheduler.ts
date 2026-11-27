@@ -125,7 +125,8 @@ function useReminderNavigation() {
       kind !== 'card' &&
       kind !== 'subscription' &&
       kind !== 'payday' &&
-      kind !== 'partner-transaction'
+      kind !== 'partner-transaction' &&
+      kind !== 'partner-goal'
     ) {
       return;
     }
@@ -135,6 +136,13 @@ function useReminderNavigation() {
       // Push from the notify-partner Edge Function: open the movement.
       if (typeof data?.transactionId === 'string') {
         router.navigate({ pathname: '/transactions/[id]', params: { id: data.transactionId } });
+      }
+      return;
+    }
+    if (kind === 'partner-goal') {
+      // Push from the notify-partner Edge Function: open the shared goal.
+      if (typeof data?.goalId === 'string') {
+        router.navigate({ pathname: '/accounts/goals/[id]', params: { id: data.goalId } });
       }
       return;
     }
