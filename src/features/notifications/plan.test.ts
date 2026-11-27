@@ -89,7 +89,8 @@ describe('planReminders', () => {
     const [, before, due, sub] = planReminders(input());
     expect(before).toMatchObject({ kind: 'card', targetId: 'c1' });
     expect(before.body).toBe('Paga $1,300.00 de tu Banorte Oro antes del 25 nov.');
-    expect(due.title).toBe('Hoy vence tu tarjeta Oro');
+    expect(due.title).toBe('Hoy vence tu tarjeta');
+    expect(due.body).toBe('Paga $1,300.00 de tu Banorte Oro hoy para no generar intereses.');
     expect(sub).toMatchObject({ kind: 'subscription', targetId: 's1' });
     expect(sub.title).toBe('Netflix se cobra pronto');
     expect(sub.body).toBe('El 30 nov se cobrarán $299.00 en Nu.');

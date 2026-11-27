@@ -133,10 +133,11 @@ export function planReminders(input: PlanInput): Reminder[] {
         kind: 'card',
         targetId: p.accountId,
         date: reminderMoment(p.dueDate),
-        title: `Hoy vence tu tarjeta ${p.name}`,
+        // The card goes in the body: Android truncates long titles when collapsed.
+        title: 'Hoy vence tu tarjeta',
         body: hideAmounts
-          ? 'Paga hoy para no generar intereses.'
-          : `Paga ${money} hoy para no generar intereses.`,
+          ? `Paga tu ${card} hoy para no generar intereses.`
+          : `Paga ${money} de tu ${card} hoy para no generar intereses.`,
       });
     }
   }
