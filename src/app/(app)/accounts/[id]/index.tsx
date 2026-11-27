@@ -6,11 +6,17 @@ import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import { Chip } from '@/components/ui/chip';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
 import { useAccount } from '@/features/accounts/api';
 import { ACCOUNT_TYPE_SHORT } from '@/features/accounts/components/account-card';
 import { ACCOUNT_TYPE_COLOR } from '@/features/accounts/constants';
-import type { CreditCardStatement } from '@/features/accounts/credit-card';
+import {
+  type CreditCardStatement,
+  dueDateForCut,
+  shiftStatementCut,
+  statementPeriod,
+} from '@/features/accounts/credit-card';
 import { useCreditCardStatements } from '@/features/accounts/statements';
 import { type Transaction, useAccountTransactions } from '@/features/transactions/api';
 import { TransactionRow } from '@/features/transactions/components/transaction-row';
@@ -26,14 +32,27 @@ export default function AccountDetailScreen() {
   const formatAmount = useFormatMoney();
   const colors = useThemeColors();
   const [month, setMonth] = useState(() => monthRange(today()).start);
+  const [view, setView] = useState<'period' | 'month'>('period');
+  /** Cut that closes the shown statement; null = the one in progress. */
+  const [cut, setCut] = useState<string | null>(null);
 
   const account = useAccount(id);
   const statements = useCreditCardStatements();
-  const transactions = useAccountTransactions(id, month);
   const myId = useAuthStore((s) => s.session?.user.id);
   const { partner } = usePartner();
 
   const isCredit = account.data?.type === 'credit_card';
+  const statementDay = account.data?.statement_day ?? null;
+  const statement = statements.statements[id] ?? null;
+  // Credit cards with a cycle show their movements by statement by default.
+  const byPeriod = isCredit && view === 'period' && !!statement && !!statementDay;
+  const openCut = statement?.nextCutDate ?? null;
+  const shownCut = cut ?? openCut;
+  const range =
+    byPeriod && shownCut && statementDay
+      ? statementPeriod(shownCut, statementDay)
+      : monthRange(month);
+  const transactions = useAccountTransactions(id, range.start, range.end);
 
   // Money in: income and transfers into the account (card payments, for credit cards).
   // Money out: expenses and transfers out of it.
@@ -75,7 +94,6 @@ export default function AccountDetailScreen() {
   const current = account.data;
   const isMine = current.user_id === myId;
   const debt = Math.abs(Math.min(current.balance, 0));
-  const statement = statements.statements[current.id];
   const maxFlow = Math.max(moneyIn, moneyOut);
 
   return (
@@ -208,7 +226,31 @@ export default function AccountDetailScreen() {
             </View>
 
             <View className="gap-4 rounded-card border border-line bg-card p-4">
-              <MonthSwitcher month={month} onChange={setMonth} />
+              {isCredit && statement && statementDay ? (
+                <View accessibilityRole="radiogroup" className="flex-row gap-2">
+                  <Chip
+                    label="Por corte"
+                    selected={view === 'period'}
+                    onPress={() => setView('period')}
+                  />
+                  <Chip
+                    label="Por mes"
+                    selected={view === 'month'}
+                    onPress={() => setView('month')}
+                  />
+                </View>
+              ) : null}
+              {byPeriod && shownCut && openCut && statementDay ? (
+                <PeriodSwitcher
+                  cut={shownCut}
+                  openCut={openCut}
+                  statementDay={statementDay}
+                  paymentDueDay={current.payment_due_day}
+                  onChange={setCut}
+                />
+              ) : (
+                <MonthSwitcher month={month} onChange={setMonth} />
+              )}
               <FlowBar
                 label={isCredit ? 'Pagos' : 'Entradas'}
                 value={`+${formatAmount(moneyIn, current.currency)}`}
@@ -255,7 +297,9 @@ export default function AccountDetailScreen() {
             <Text className="mt-8 text-center text-expense">{transactions.error.message}</Text>
           ) : (
             <Text className="mt-8 text-center text-ink-muted">
-              Sin movimientos en {formatMonth(month).toLowerCase()}.
+              {byPeriod
+                ? 'Sin movimientos en este corte.'
+                : `Sin movimientos en ${formatMonth(month).toLowerCase()}.`}
             </Text>
           )
         }
@@ -284,6 +328,70 @@ function RoundButton({
     >
       {children}
     </Pressable>
+  );
+}
+
+/** "‹ 21 nov – 20 dic ›" for statements; can't go past the one in progress. */
+function PeriodSwitcher({
+  cut,
+  openCut,
+  statementDay,
+  paymentDueDay,
+  onChange,
+}: {
+  cut: string;
+  openCut: string;
+  statementDay: number;
+  paymentDueDay: number | null;
+  onChange: (cut: string | null) => void;
+}) {
+  const colors = useThemeColors();
+  const { start, end } = statementPeriod(cut, statementDay);
+  const isOpen = cut === openCut;
+  const status = isOpen ? 'Corte en curso' : 'Corte cerrado';
+  const due = paymentDueDay
+    ? `, pagas antes del ${formatShortDate(dueDateForCut(cut, paymentDueDay))}`
+    : '';
+
+  const step = (direction: -1 | 1) => {
+    const next = shiftStatementCut(cut, direction, statementDay);
+    onChange(next === openCut ? null : next);
+  };
+
+  return (
+    <View className="flex-row items-center justify-between gap-2">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Corte anterior"
+        hitSlop={4}
+        onPress={() => step(-1)}
+        className="h-11 w-11 items-center justify-center rounded-full bg-sunken active:opacity-70"
+        style={{ borderRadius: 22 }}
+      >
+        <Icon ios="chevron.left" android="chevron_left" color={colors.ink} size={20} />
+      </Pressable>
+      <View className="flex-1 items-center gap-0.5">
+        <Text className="text-lg font-semibold text-ink">
+          {formatShortDate(start)} – {formatShortDate(end)}
+        </Text>
+        <Text numberOfLines={1} className="text-xs text-ink-muted">
+          {status}
+          {due}
+        </Text>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Corte siguiente"
+        accessibilityState={{ disabled: isOpen }}
+        hitSlop={4}
+        disabled={isOpen}
+        onPress={() => step(1)}
+        className="h-11 w-11 items-center justify-center rounded-full bg-sunken active:opacity-70 disabled:opacity-30"
+        style={{ borderRadius: 22 }}
+      >
+        <Icon ios="chevron.right" android="chevron_right" color={colors.ink} size={20} />
+      </Pressable>
+    </View>
   );
 }
 

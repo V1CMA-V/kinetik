@@ -153,7 +153,8 @@ export default function PaymentsScreen() {
     error,
     refetch,
   } = usePaymentCoverage();
-  const { payments, funds, nextTotal, balanceWithNext, paydaysUntilLastDue } = coverage;
+  const { payments, funds, nextTotal, nextStatements, balanceWithNext, paydaysUntilLastDue } =
+    coverage;
 
   return (
     <Screen className="pt-4">
@@ -267,10 +268,35 @@ export default function PaymentsScreen() {
 
             {nextTotal > 0 ? (
               <View className="gap-3">
-                <Text className="text-lg font-bold text-ink">Siguiente corte</Text>
+                <Text className="text-lg font-bold text-ink">Cortes en curso</Text>
+                <View>
+                  {nextStatements.map((n, i) => (
+                    <Pressable
+                      key={n.accountId}
+                      accessibilityRole="button"
+                      onPress={() =>
+                        router.push({ pathname: '/accounts/[id]', params: { id: n.accountId } })
+                      }
+                      className={`flex-row items-center gap-3 px-4 py-3.5 active:opacity-80 ${groupedRowClass(i, nextStatements.length)}`}
+                    >
+                      <View className="flex-1 gap-0.5">
+                        <Text numberOfLines={1} className="text-base font-semibold text-ink">
+                          {n.name}
+                        </Text>
+                        <Text numberOfLines={1} className="text-xs font-medium text-ink-muted">
+                          Cierra el {formatShortDate(n.cutDate)}, pagas antes del{' '}
+                          {formatShortDate(n.dueDate)}
+                        </Text>
+                      </View>
+                      <Text className="text-base font-bold tabular-nums text-ink">
+                        {formatAmount(n.amount)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
                 <View className="gap-1 rounded-card border border-line bg-card p-4">
                   <View className="flex-row items-baseline justify-between gap-3">
-                    <Text className="text-sm text-ink-muted">Cortes en curso</Text>
+                    <Text className="text-sm text-ink-muted">Total en curso</Text>
                     <Text className="text-base font-semibold tabular-nums text-ink">
                       {formatAmount(nextTotal)}
                     </Text>

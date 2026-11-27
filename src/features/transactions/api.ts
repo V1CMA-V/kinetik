@@ -15,8 +15,8 @@ export const transactionKeys = {
   all: ['transactions'] as const,
   month: (month: string) => [...transactionKeys.all, 'month', month] as const,
   detail: (id: string) => [...transactionKeys.all, 'detail', id] as const,
-  account: (accountId: string, month: string) =>
-    [...transactionKeys.all, 'account', accountId, month] as const,
+  account: (accountId: string, start: string, end: string) =>
+    [...transactionKeys.all, 'account', accountId, start, end] as const,
 };
 
 /** Transactions of the month that contains `month` (any `YYYY-MM-DD` in it). */
@@ -42,14 +42,12 @@ export function useMonthTransactions(month: string) {
 export type Transaction = NonNullable<ReturnType<typeof useMonthTransactions>['data']>[number];
 
 /**
- * Transactions of one account in the month that contains `month`: the ones made
- * from it and the transfers into it.
+ * Transactions of one account between `start` and `end` (inclusive, `YYYY-MM-DD`):
+ * the ones made from it and the transfers into it.
  */
-export function useAccountTransactions(accountId: string, month: string) {
-  const { start, end } = monthRange(month);
-
+export function useAccountTransactions(accountId: string, start: string, end: string) {
   return useQuery({
-    queryKey: transactionKeys.account(accountId, start),
+    queryKey: transactionKeys.account(accountId, start, end),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('transactions')
