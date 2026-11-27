@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import type { BudgetAlertsSent } from '@/features/budgets/alerts';
 import { zustandStorage } from '@/lib/storage';
 
 type ColorSchemePreference = 'system' | 'light' | 'dark';
@@ -30,6 +31,12 @@ type SettingsState = {
   /** The day before and the day of each payday (only with an income profile). */
   paydayReminders: boolean;
   setPaydayReminders: (value: boolean) => void;
+  /** Notify when a budgeted category reaches 80% and 100% of its monthly budget. */
+  budgetAlerts: boolean;
+  setBudgetAlerts: (value: boolean) => void;
+  /** Budget alerts already shown this month (belongs to the signed-in user). */
+  budgetAlertsSent: BudgetAlertsSent;
+  setBudgetAlertsSent: (value: BudgetAlertsSent) => void;
   /** How many days before a due date / charge to remind. */
   reminderDaysBefore: ReminderDays;
   setReminderDaysBefore: (value: ReminderDays) => void;
@@ -66,6 +73,11 @@ export const useSettingsStore = create<SettingsState>()(
       // Older persisted state lacks it: persist's default shallow merge keeps this default.
       paydayReminders: true,
       setPaydayReminders: (paydayReminders) => set({ paydayReminders }),
+      // Also missing from older persisted state; the shallow merge keeps these defaults.
+      budgetAlerts: true,
+      setBudgetAlerts: (budgetAlerts) => set({ budgetAlerts }),
+      budgetAlertsSent: {},
+      setBudgetAlertsSent: (budgetAlertsSent) => set({ budgetAlertsSent }),
       reminderDaysBefore: 3,
       setReminderDaysBefore: (reminderDaysBefore) => set({ reminderDaysBefore }),
       lastAccountId: null,

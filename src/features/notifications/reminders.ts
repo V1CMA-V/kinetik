@@ -63,7 +63,7 @@ async function ensureChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
     name: 'Recordatorios',
-    description: 'Pagos de tarjeta, cobros de suscripciones y días de pago',
+    description: 'Pagos de tarjeta, cobros de suscripciones, días de pago y presupuestos',
     importance: AndroidImportance.HIGH,
   });
 }
@@ -115,6 +115,27 @@ export function applyReminderPlan(plan: Reminder[]) {
       });
     }
     appliedSignature = signature;
+  });
+}
+
+/**
+ * Shows a notification right away (e.g. budget alerts). Not scheduled, so
+ * `applyReminderPlan` / `cancelAllReminders` never touch it; `id` must not use a
+ * reminder prefix.
+ */
+export async function presentNow(notification: {
+  id: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown>;
+}) {
+  if (!notificationsSupported) return;
+  await ensureChannel();
+  await Notifications.scheduleNotificationAsync({
+    identifier: notification.id,
+    content: { title: notification.title, body: notification.body, data: notification.data },
+    // Immediate delivery; on Android through the reminders channel.
+    trigger: Platform.OS === 'android' ? { channelId: REMINDER_CHANNEL_ID } : null,
   });
 }
 

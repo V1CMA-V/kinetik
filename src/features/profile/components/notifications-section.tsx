@@ -39,6 +39,8 @@ export function NotificationsSection() {
   const setSubscriptionReminders = useSettingsStore((s) => s.setSubscriptionReminders);
   const paydayReminders = useSettingsStore((s) => s.paydayReminders);
   const setPaydayReminders = useSettingsStore((s) => s.setPaydayReminders);
+  const budgetAlerts = useSettingsStore((s) => s.budgetAlerts);
+  const setBudgetAlerts = useSettingsStore((s) => s.setBudgetAlerts);
   const hasIncome = !!useIncomeProfile().data;
   const daysBefore = useSettingsStore((s) => s.reminderDaysBefore);
   const setDaysBefore = useSettingsStore((s) => s.setReminderDaysBefore);
@@ -49,7 +51,7 @@ export function NotificationsSection() {
   // Turned on here, but the permission was revoked later in the system settings.
   const revoked = enabled && permission !== null && permission !== 'granted';
 
-  let description = 'Pagos de tarjeta y cobros de suscripciones';
+  let description = 'Pagos de tarjeta, suscripciones y presupuestos';
   if (!notificationsSupported) description = 'Disponible solo en la app del teléfono';
   else if (revoked) description = 'Permiso desactivado en los ajustes del teléfono';
 
@@ -105,6 +107,12 @@ export function NotificationsSection() {
               onValueChange={setPaydayReminders}
             />
           ) : null}
+          <SwitchRow
+            label="Alertas de presupuesto"
+            description="Aviso al llegar al 80% y al 100% de un presupuesto"
+            value={budgetAlerts}
+            onValueChange={setBudgetAlerts}
+          />
           <View className="gap-3 px-4 py-3">
             <Text className="text-base text-ink">Avisarme</Text>
             <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">

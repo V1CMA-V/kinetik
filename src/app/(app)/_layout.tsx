@@ -1,6 +1,7 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useEffect } from 'react';
 
+import { useBudgetAlerts } from '@/features/budgets/use-budget-alerts';
 import { useRealtimeSync } from '@/features/household/use-realtime-sync';
 import { usePushRegistration } from '@/features/notifications/push';
 import { useReminderScheduler } from '@/features/notifications/use-reminder-scheduler';
@@ -21,6 +22,9 @@ export default function AppLayout() {
 
   // Local reminders for card payments and upcoming subscription charges.
   useReminderScheduler();
+
+  // Notifies when a category reaches 80% / 100% of its monthly budget.
+  useBudgetAlerts();
 
   // Keeps the Android home-screen widget (month spending) up to date.
   useWidgetSync();

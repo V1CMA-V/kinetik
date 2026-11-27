@@ -126,12 +126,20 @@ function useReminderNavigation() {
       kind !== 'subscription' &&
       kind !== 'payday' &&
       kind !== 'partner-transaction' &&
-      kind !== 'partner-goal'
+      kind !== 'partner-goal' &&
+      kind !== 'budget'
     ) {
       return;
     }
     // Handle each tap once (the layout remounts after signing in again).
     Notifications.clearLastNotificationResponse();
+    if (kind === 'budget') {
+      // Local alert from `useBudgetAlerts`: open the budget.
+      if (typeof data?.budgetId === 'string') {
+        router.navigate({ pathname: '/transactions/budget/[id]', params: { id: data.budgetId } });
+      }
+      return;
+    }
     if (kind === 'partner-transaction') {
       // Push from the notify-partner Edge Function: open the movement.
       if (typeof data?.transactionId === 'string') {
