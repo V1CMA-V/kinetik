@@ -49,6 +49,15 @@ export type CoveredPayment = {
   coveringPayday: string | null;
 };
 
+/** A card's statement in progress: what's been charged since the last cut. */
+export type NextStatement = {
+  accountId: string;
+  name: string;
+  cutDate: string;
+  dueDate: string;
+  amount: number;
+};
+
 export type FundRow = FundAccount & { included: boolean };
 
 export type PaymentCoverage = {
@@ -61,6 +70,8 @@ export type PaymentCoverage = {
   balance: number;
   /** Estimated statements in progress (next cut), every card. */
   nextTotal: number;
+  /** Statements in progress with something charged, soonest due first. */
+  nextStatements: NextStatement[];
   /** available - dueTotal - nextTotal. */
   balanceWithNext: number;
   /** First payday after today (null without income). */
@@ -157,6 +168,16 @@ export function computePaymentCoverage({
   const nextTotal = round2(
     sameCurrency.reduce((sum, c) => sum + c.statement.currentPeriod.total, 0),
   );
+  const nextStatements: NextStatement[] = sameCurrency
+    .filter((c) => c.statement.currentPeriod.total > 0)
+    .map((c) => ({
+      accountId: c.accountId,
+      name: c.name,
+      cutDate: c.statement.nextCutDate,
+      dueDate: c.statement.currentPeriod.dueDate,
+      amount: c.statement.currentPeriod.total,
+    }))
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || b.amount - a.amount);
   const incomeUntilLastDue = round2(paydays.length * payAmount);
 
   return {
@@ -166,6 +187,7 @@ export function computePaymentCoverage({
     available,
     balance: round2(available - dueTotal),
     nextTotal,
+    nextStatements,
     balanceWithNext: round2(available - dueTotal - nextTotal),
     nextPayday: income && payAmount ? nextPayday(income, addDays(today, 1)) : null,
     paydaysUntilLastDue: paydays,

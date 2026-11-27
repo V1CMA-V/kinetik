@@ -216,3 +216,89 @@ export function computeCardStatement(
     activeMsiPlans,
   };
 }
+
+/** Days of the statement that closes at `cut`: from the day after the previous cut to the cut. */
+export function statementPeriod(cut: string, statementDay: number) {
+  const previous = parts(shiftCut(cut, -1, statementDay));
+  const start = new Date(previous.y, previous.m, previous.d + 1);
+  return {
+    start: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`,
+    end: cut,
+  };
+}
+
+/** Cut `n` statements after `cut` (negative goes back). */
+export function shiftStatementCut(cut: string, n: number, statementDay: number) {
+  return shiftCut(cut, n, statementDay);
+}
+
+export type StatementStatus = 'closed' | 'open' | 'upcoming';
+
+export type StatementForecast = {
+  cutDate: string;
+  dueDate: string;
+  /**
+   * - closed: last closed statement, still to pay (after payments since the cut).
+   * - open: statement in progress, closes at the next cut.
+   * - upcoming: later statements, only their already-known MSI installments.
+   */
+  status: StatementStatus;
+  amount: number;
+};
+
+/**
+ * Payments a card has coming up, one per statement: the closed one (if anything
+ * is left to pay), the one in progress and `upcoming` later ones with MSI
+ * installments already billed to them. Statements with nothing to pay are skipped.
+ */
+export function forecastCardStatements(
+  accountId: string,
+  cycle: { statementDay: number | null; paymentDueDay: number | null },
+  transactions: CardTransaction[],
+  today: string,
+  upcoming = 2,
+): StatementForecast[] {
+  const statement = computeCardStatement(accountId, cycle, transactions, today);
+  const { statementDay, paymentDueDay } = cycle;
+  if (!statement || !statementDay || !paymentDueDay) return [];
+
+  const forecasts: StatementForecast[] = [
+    {
+      cutDate: statement.lastCutDate,
+      dueDate: statement.dueDate,
+      status: 'closed',
+      amount: statement.remainingToPay,
+    },
+    {
+      cutDate: statement.nextCutDate,
+      dueDate: statement.currentPeriod.dueDate,
+      status: 'open',
+      amount: statement.currentPeriod.total,
+    },
+  ];
+
+  const laterCuts = Array.from({ length: upcoming }, (_, i) =>
+    shiftCut(statement.nextCutDate, i + 1, statementDay),
+  );
+  const msiByCut = new Map(laterCuts.map((cut) => [cut, 0]));
+  for (const t of transactions) {
+    if (t.occurred_on > today || t.account_id !== accountId) continue;
+    if (t.kind !== 'expense' || !t.installment_months) continue;
+    const cuts = installmentCuts(t.occurred_on, t.installment_months, statementDay);
+    const amounts = installmentAmounts(t.amount, t.installment_months);
+    cuts.forEach((cut, i) => {
+      const sum = msiByCut.get(cut);
+      if (sum !== undefined) msiByCut.set(cut, sum + amounts[i]);
+    });
+  }
+  for (const cut of laterCuts) {
+    forecasts.push({
+      cutDate: cut,
+      dueDate: dueDateForCut(cut, paymentDueDay),
+      status: 'upcoming',
+      amount: round2(msiByCut.get(cut) ?? 0),
+    });
+  }
+
+  return forecasts.filter((f) => f.amount > 0);
+}

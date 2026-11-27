@@ -5,7 +5,12 @@ import { addMonths, today } from '@/lib/date';
 import { supabase } from '@/lib/supabase';
 
 import { accountKeys, useAccounts } from './api';
-import { computeCardStatement, type CreditCardStatement } from './credit-card';
+import {
+  computeCardStatement,
+  type CreditCardStatement,
+  forecastCardStatements,
+} from './credit-card';
+import type { CardForecasts } from './payments-by-month';
 
 /** MSI plans run up to 24 months, so older purchases can't be billed anymore. */
 const HISTORY_MONTHS = 25;
@@ -116,8 +121,30 @@ export function useCreditCardStatements() {
       .sort((a, b) => nextDue(a.statement).localeCompare(nextDue(b.statement)));
   }, [cards, statements]);
 
+  /** Upcoming statements of every configured card (closed, in progress and later MSI). */
+  const forecasts = useMemo<CardForecasts[]>(() => {
+    if (!transactions.data) return [];
+    return cards.flatMap((card) => {
+      if (!card.statement_day || !card.payment_due_day) return [];
+      return [
+        {
+          accountId: card.id,
+          name: card.name,
+          currency: card.currency,
+          forecasts: forecastCardStatements(
+            card.id,
+            { statementDay: card.statement_day, paymentDueDay: card.payment_due_day },
+            transactions.data,
+            now,
+          ),
+        },
+      ];
+    });
+  }, [cards, transactions.data, now]);
+
   return {
     statements,
+    forecasts,
     upcomingPayments,
     cardSummaries,
     isPending: accounts.isPending || (cardIds.length > 0 && transactions.isPending),
