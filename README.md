@@ -21,10 +21,13 @@ presupuestos en un solo lugar, con tu patrimonio neto real.
 - **Tarjetas de crédito**: fecha de corte y de pago, cuánto pagar en cada periodo y avisos
   antes de que venza.
 - **Meses sin intereses**: compras a MSI repartidas mes a mes en el corte y en tus presupuestos.
-- **Movimientos**: gastos, ingresos y transferencias entre cuentas, con categorías.
+- **Movimientos**: gastos, ingresos y transferencias entre cuentas, con categorías. Búsqueda sin
+  acentos y filtros por tipo, categoría, cuenta y monto, en el mes o en todo el historial, y
+  exportación a CSV (abre en Excel o Google Sheets).
 - **Suscripciones**: cargos mensuales, trimestrales o anuales que se registran solos.
 - **Presupuestos**: límite mensual por categoría, cuánto llevas y cuánto puedes gastar al día.
-- **Análisis**: flujo de efectivo, proyección y gasto por categoría de cada mes.
+- **Análisis**: flujo de efectivo, proyección, gasto por categoría de cada mes e historial del
+  patrimonio neto de los últimos 6 meses.
 - **Metas**: junta para un viaje o un enganche, solo o en pareja, con las aportaciones de cada
   quien y cuánto ahorrar al mes para llegar.
 - **En pareja**: comparte cuentas con un código de invitación, vean sus movimientos en tiempo
