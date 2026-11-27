@@ -50,3 +50,6 @@ skills-lock.json
 
 # test coverage
 coverage/
+
+# Firebase config (provided to EAS via GOOGLE_SERVICES_JSON file variable)
+google-services.json
