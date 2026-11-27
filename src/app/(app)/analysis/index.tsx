@@ -5,7 +5,11 @@ import { ActivityIndicator, RefreshControl, ScrollView, View } from 'react-nativ
 import { Text } from '@/components/ui/text';
 import { Screen } from '@/components/screen';
 import { MonthSwitcher } from '@/components/ui/month-switcher';
+import { DEFAULT_CURRENCY } from '@/features/accounts/constants';
+import { groupPaymentsByMonth } from '@/features/accounts/payments-by-month';
+import { useCreditCardStatements } from '@/features/accounts/statements';
 import { useOwnMonthIncome } from '@/features/analysis/api';
+import { CardPaymentsByMonth } from '@/features/analysis/components/card-payments-by-month';
 import { CashflowCard } from '@/features/analysis/components/cashflow-card';
 import { CategoryBreakdown } from '@/features/analysis/components/category-breakdown';
 import {
@@ -30,6 +34,7 @@ export default function AnalysisScreen() {
   const budgets = useBudgetProgress(month);
   const incomeProfile = useIncomeProfile();
   const ownIncome = useOwnMonthIncome(month);
+  const cardStatements = useCreditCardStatements();
 
   const selected = history.months[history.months.length - 1];
   const previous = history.months[history.months.length - 2];
@@ -89,6 +94,17 @@ export default function AnalysisScreen() {
     });
     return insights.period === 'future' ? null : insights;
   }, [incomeProfile.data, current, scope, ownIncome.data, month, projection]);
+  // Card payments due from the selected month on (only looking forward from now).
+  const paymentMonths = useMemo(
+    () =>
+      isCurrentMonth
+        ? groupPaymentsByMonth(cardStatements.forecasts, DEFAULT_CURRENCY).filter(
+            (m) => m.month >= month,
+          )
+        : [],
+    [isCurrentMonth, cardStatements.forecasts, month],
+  );
+
   const showIncomePrompt = scope !== 'shared' && incomeProfile.data === null;
 
   // Budgets cover all your spending, so they only compare against the "Todo" view.
@@ -113,6 +129,7 @@ export default function AnalysisScreen() {
               budgets.refetch();
               incomeProfile.refetch();
               ownIncome.refetch();
+              cardStatements.refetch();
             }}
           />
         }
@@ -161,6 +178,13 @@ export default function AnalysisScreen() {
               </View>
             ) : showIncomePrompt ? (
               <IncomePrompt />
+            ) : null}
+
+            {paymentMonths.length ? (
+              <View className="gap-3">
+                <Text className="text-lg font-bold text-ink">Tarjetas por mes de pago</Text>
+                <CardPaymentsByMonth months={paymentMonths} />
+              </View>
             ) : null}
 
             <View className="gap-3">
