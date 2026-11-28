@@ -23,7 +23,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     title: 'Datos que guardamos',
     items: [
       'Datos de tu cuenta: correo electrónico, nombre (opcional) y contraseña cifrada. Si entras con Google, recibimos tu nombre, tu correo y tu identificador de Google.',
-      'Información financiera que tú registras: cuentas (nombre, tipo, banco, saldo, límite de crédito, día de corte y de pago), movimientos (monto, categoría, descripción y fecha), suscripciones, presupuestos y metas de ahorro.',
+      'Información financiera que tú registras: cuentas (nombre, tipo, banco, saldo, límite de crédito, día de corte y de pago), movimientos (monto, categoría, descripción y fecha), suscripciones, presupuestos, metas de ahorro y las categorías que crees (solo tú las ves).',
       'Si decides agregarlos, tus datos de ingreso: cuánto te llega por pago, cada cuánto y qué días te pagan, la cuenta donde te depositan y un estimado de ingresos extra. Son opcionales, solo tú los ves (tu pareja no) y puedes borrarlos cuando quieras desde Perfil > Mis ingresos. Los movimientos de ingreso que registres en una cuenta compartida sí los ve tu pareja, como cualquier otro movimiento.',
       'Modo pareja: el hogar al que perteneces, sus integrantes y los códigos de invitación.',
       'Notificaciones: el identificador para enviar notificaciones a tu teléfono y el tipo de sistema (Android o iOS).',
@@ -32,7 +32,8 @@ export const PRIVACY_POLICY: PolicySection[] = [
   {
     title: 'Datos que se quedan en tu teléfono',
     paragraphs: [
-      'Tus preferencias (tema, ocultar montos, recordatorios), tu sesión, los recordatorios programados y el resumen que muestra el widget se guardan solo en tu teléfono.',
+      'Tus preferencias (tema, ocultar montos, recordatorios y avisos de presupuesto), tu sesión, los recordatorios programados y el resumen que muestra el widget se guardan solo en tu teléfono.',
+      'Cuando exportas tus movimientos a CSV, el archivo se crea en tu teléfono y tú eliges con qué app compartirlo o dónde guardarlo. No recibimos una copia.',
       'Si activas Face ID o huella, la verificación la hace tu teléfono: nunca recibimos tus datos biométricos.',
     ],
   },
@@ -50,7 +51,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     items: [
       'Darte el servicio: mostrar tus saldos, cortes, presupuestos, análisis y metas, y sincronizarlos entre tus dispositivos.',
       'Compartir con tu pareja solo lo que tú marcas como compartido, si usas el modo pareja.',
-      'Enviarte recordatorios y avisos de actividad en cuentas compartidas, si los activas.',
+      'Enviarte recordatorios, avisos de presupuesto y avisos de actividad en cuentas y metas compartidas, si los activas.',
       'Mantener tu cuenta segura e iniciar tu sesión.',
     ],
   },
@@ -62,7 +63,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     items: [
       'Supabase: base de datos, inicio de sesión y funciones del servidor.',
       'Google: inicio de sesión con Google y entrega de notificaciones en Android (Firebase Cloud Messaging).',
-      'Expo: servicio de envío de notificaciones.',
+      'Expo: envío de notificaciones y descarga de actualizaciones de la app. Para buscar actualizaciones, la app envía datos técnicos: el sistema (Android o iOS), la versión de la app y un identificador aleatorio de la instalación, que no está ligado a tu cuenta ni incluye tus datos financieros.',
       'Apple: entrega de notificaciones en iPhone.',
       'Tu pareja ve las cuentas, los movimientos y las metas que compartes, y tu nombre.',
     ],

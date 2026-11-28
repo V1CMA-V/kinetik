@@ -5,7 +5,7 @@ export const CONTROLLER_NAME = 'Kinetik';
 export const CONTACT_EMAIL = 'vicmarc30@gmail.com';
 
 /** Date of the current privacy policy version (`YYYY-MM-DD`). */
-export const POLICY_UPDATED_ON = '2026-11-26';
+export const POLICY_UPDATED_ON = '2026-11-27';
 
 /**
  * Public web pages the stores ask for. Pending: there is no website yet.
